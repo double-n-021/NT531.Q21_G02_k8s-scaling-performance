@@ -1,0 +1,61 @@
+# config/default.yaml
+# ============================================================
+# NT531 Load Generator — Tham số traffic profiles
+# ============================================================
+# PLACEHOLDER — thay bằng giá trị calibration thật sau KB0.
+# Sau calibration, copy file này thành calibrated.yaml và cập nhật.
+
+target:
+  host: "http://192.168.1.100"     # IP Nginx Ingress NodePort — thay đổi theo testbed
+  endpoint: "/collect"              # FastAPI endpoint trên processing service
+
+# --- Tham số từ Calibration (PLACEHOLDER — thay sau KB0) ---
+calibration:
+  mu: 30.0                # service rate (req/s/pod) — ước lượng, sẽ đo lại
+  lambda_normal: 20       # tải ổn định (req/s) — ~30% capacity k=2
+  lambda_cap: 50          # tải bắt đầu bão hòa k=2 (req/s)
+  lambda_max: 100         # tải đỉnh spike (req/s) — ~gấp 2x capacity
+
+# --- Traffic Profiles ---
+profiles:
+  stable:
+    duration: 180          # giây
+    users: 20              # concurrent users ≈ lambda_normal
+    spawn_rate: 20         # tất cả user lên ngay (instant)
+
+  ramp:
+    duration: 300
+    stages:
+      - {duration: 60,  users: 20,  spawn_rate: 5}    # warm-up = lambda_normal
+      - {duration: 120, users: 80,  spawn_rate: 1}     # ramp dần lên cao
+      - {duration: 60,  users: 100, spawn_rate: 2}     # peak = lambda_max
+      - {duration: 60,  users: 20,  spawn_rate: 5}     # cool-down
+
+  spike:
+    duration: 180
+    stages:
+      - {duration: 60,  users: 20,  spawn_rate: 20}    # baseline
+      - {duration: 10,  users: 100, spawn_rate: 50}    # SPIKE lên lambda_max (đột ngột)
+      - {duration: 50,  users: 100, spawn_rate: 1}     # giữ spike
+      - {duration: 60,  users: 20,  spawn_rate: 10}    # drop
+
+  spike_recovery:
+    duration: 240
+    stages:
+      - {duration: 60,  users: 20,  spawn_rate: 20}    # baseline
+      - {duration: 10,  users: 100, spawn_rate: 50}    # SPIKE
+      - {duration: 30,  users: 100, spawn_rate: 1}     # sustain
+      - {duration: 20,  users: 20,  spawn_rate: 10}    # drop nhanh
+      - {duration: 120, users: 20,  spawn_rate: 1}     # RECOVERY observation (đo MTTR)
+
+  oscillating:
+    duration: 360
+    low_users: 20          # lambda_normal — đáy sóng
+    high_users: 80         # lambda_cap — đỉnh sóng
+    cycle_duration: 120    # 60s lên + 60s xuống = 1 chu kỳ
+
+# --- Experiment ---
+experiment:
+  runs_per_combo: 5        # lặp 5 lần mỗi tổ hợp (strategy x profile)
+  reset_wait: 420          # 7 phút verified reset giữa các run
+  csv_dir: "results"       # thư mục output

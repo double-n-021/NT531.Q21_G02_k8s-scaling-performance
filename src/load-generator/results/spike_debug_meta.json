@@ -1,0 +1,14 @@
+{
+  "profile": "spike",
+  "config_file": "config/default.yaml",
+  "seed": 42,
+  "start_epoch": 1774810890.941727,
+  "start_iso": "2026-03-30T02:01:30+0700",
+  "host": "http://localhost:8000",
+  "calibration": {
+    "mu": 30.0,
+    "lambda_normal": 20,
+    "lambda_cap": 50,
+    "lambda_max": 100
+  }
+}

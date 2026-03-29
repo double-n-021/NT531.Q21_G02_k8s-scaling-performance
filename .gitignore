@@ -1,0 +1,28 @@
+# Bỏ qua logs và file bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Cấu hình môi trường ảo
+venv/
+env/
+.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Dữ liệu xuất ra từ bài test Locust (tránh push các file CSV rác nặng MBs)
+data/**/*.csv
+!data/**/.gitkeep
+src/load-generator/results/*.csv
+
+# K3s/Kubernetes kubeconfig local
+kubeconfig
+*.kubeconfig
+
+# Bỏ qua file nháp hệ điều hành
+*.tmp
+*.bak
+.DS_Store
