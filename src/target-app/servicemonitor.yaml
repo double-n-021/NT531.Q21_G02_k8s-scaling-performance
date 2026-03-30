@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: target-app-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus # Phải khớp với tên khi bạn dùng helm install
+spec:
+  selector:
+    matchLabels:
+      app: processing # Khớp với label của Service
+  namespaceSelector:
+    any: true # Quét tất cả các namespace để tìm App
+  endpoints:
+  - port: http # Tên này giờ đã khớp với cái name: http mình vừa thêm ở Bước 1
+    path: /metrics
+    interval: 1s

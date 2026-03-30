@@ -1,0 +1,23 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: target-app-proactive
+  namespace: nt531-env
+spec:
+  scaleTargetRef:
+    name: target-app
+  pollingInterval:  15    # (Polling) 15 giây kiểm tra tín hiệu AI một lần
+  cooldownPeriod:   300   # (Cooldown) Đợi 5 phút mới giảm Pod để tránh tắt nhầm
+  minReplicaCount:  2     # Mức tối thiểu
+  maxReplicaCount:  6    # Mức tối đa
+  advanced:
+    restoreToOriginalReplicaCount: true
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+      metricName: predicted_load_signal
+      # (Ngưỡng hành động) Cứ mỗi 10 đơn vị dự báo tải thì thêm 1 Pod
+      threshold: '6' 
+      query: |
+        sum(predicted_traffic_demand)
