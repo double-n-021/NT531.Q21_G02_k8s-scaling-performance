@@ -24,8 +24,8 @@ spec:
             cpu: "200m"
             memory: "256Mi"
           limits:
-            cpu: "200m"
-            memory: "256Mi"
+            cpu: "500m"
+            memory: "512Mi"
         readinessProbe: 
           httpGet:
             path: /metrics
@@ -38,14 +38,11 @@ kind: Service
 metadata:
   name: target-app-service
   namespace: nt531-env
-  labels:                  
-    app: processing
 spec:
   selector:
     app: processing
   ports:
-  - name: http      
-    protocol: TCP
+  - protocol: TCP
     port: 80
     targetPort: 8000
   type: ClusterIP
