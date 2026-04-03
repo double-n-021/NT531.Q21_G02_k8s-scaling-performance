@@ -6,8 +6,8 @@
 # Sau calibration, copy file này thành calibrated.yaml và cập nhật.
 
 target:
-  host: "http://192.168.1.100"     # IP Nginx Ingress NodePort — thay đổi theo testbed
-  endpoint: "/collect"              # FastAPI endpoint trên processing service
+  host: "http://localhost:8081"     # IP Nginx Ingress NodePort — thay đổi theo testbed
+  endpoint: "/process"              # FastAPI endpoint trên processing service
 
 # --- Tham số từ Calibration (PLACEHOLDER — thay sau KB0) ---
 calibration:
