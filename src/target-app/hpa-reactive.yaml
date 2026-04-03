@@ -1,0 +1,32 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: target-app-hpa
+  namespace: nt531-env
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: target-app # Khớp với tên Deployment bạn đang dùng
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50 # Giữ CPU ở mức 50%
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0 # Tăng tải ngay lập tức (Reactive)
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15 # Cho phép tăng gấp đôi số Pod trong 15s
+    scaleDown:
+      stabilizationWindowSeconds: 300 # Đợi 5 phút mới giảm (Tránh Flapping)
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60 # Chỉ giảm 1 Pod mỗi phút để an toàn
