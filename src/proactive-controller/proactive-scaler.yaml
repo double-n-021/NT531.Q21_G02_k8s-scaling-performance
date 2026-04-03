@@ -21,3 +21,17 @@ spec:
       threshold: '6' 
       query: |
         sum(predicted_traffic_demand)
+  cooldownPeriod: 300 
+  minReplicaCount: 2
+  maxReplicaCount: 6
+  advanced:
+    restoreToOriginalReplicaCount: true
+    horizontalPodAutoscalerConfig: # Thêm đoạn này vào
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300 # Đợi 5 phút ổn định rồi mới bắt đầu tính chuyện giảm
+          policies:
+          - type: Pods
+            value: 1          # Mỗi lần chỉ được phép giảm tối đa 1 Pod
+            periodSeconds: 60 # Khoảng thời gian chờ giữa mỗi lần giảm (60 giây)
+          selectPolicy: Min   # Ưu tiên chọn chính sách nào giảm ít Pod nhất
