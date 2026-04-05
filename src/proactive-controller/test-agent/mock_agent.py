@@ -13,7 +13,7 @@ if __name__ == '__main__':
     while True:
         # Giả lập AI: Lúc thì dự báo tải thấp (3), lúc thì tải cực cao (20)
         # Nếu val > 6 (threshold của bạn), Pod sẽ tự tăng!
-        val = random.choice([3, 5, 12, 18, 25]) 
+        val = 40 #random.choice([3, 5, 12, 18, 25]) 
         PREDICTED_LOAD.set(val)
         print(f"--- AI DỰ BÁO: Tải sắp tới sẽ là {val} units ---")
         time.sleep(15) # 15 giây đổi dự báo một lần

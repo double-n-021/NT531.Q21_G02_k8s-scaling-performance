@@ -21,9 +21,6 @@ spec:
       threshold: '6' 
       query: |
         sum(predicted_traffic_demand)
-  cooldownPeriod: 300 
-  minReplicaCount: 2
-  maxReplicaCount: 6
   advanced:
     restoreToOriginalReplicaCount: true
     horizontalPodAutoscalerConfig: # Thêm đoạn này vào

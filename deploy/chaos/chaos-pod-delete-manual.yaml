@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-spike-kill-50
+  namespace: litmus
+spec:
+  template:
+    spec:
+      serviceAccountName: litmus-admin
+      containers:
+      - name: chaos-tool
+        image: bitnami/kubectl:latest
+        command:
+          - /bin/bash
+          - -c
+          - |
+            # 1. Đợi 30 giây để đạt đỉnh Spike
+            echo "Đang đợi 30s để đến đỉnh Spike..."
+            sleep 30
+
+            # 2. Lấy danh sách các Pod mục tiêu
+            PODS=($(kubectl get pods -n nt531-env -l app=processing -o jsonpath='{.items[*].metadata.name}'))
+            TOTAL=${#PODS[@]}
+            KILL_COUNT=$((TOTAL / 2)) # Tính toán 50%
+
+            echo "Tìm thấy $TOTAL pods. Mục tiêu xóa: $KILL_COUNT pods (Dry-run mode)."
+
+            # 3. Thực hiện Dry-run (Chỉ liệt kê, không xóa thật)
+            # Nếu muốn xóa thật, hãy bỏ chữ "--dry-run=client" ở dòng dưới
+            for (( i=0; i<$KILL_COUNT; i++ )); do
+              echo "Đang xóa pod: ${PODS[$i]} (Dry-run)"
+              kubectl delete pod ${PODS[$i]} -n nt531-env --dry-run=client
+            done
+
+            echo "Hoàn thành bài test Chaos Dry-run."
+      restartPolicy: Never
+
