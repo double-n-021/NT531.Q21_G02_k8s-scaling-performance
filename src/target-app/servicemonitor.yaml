@@ -4,7 +4,7 @@ metadata:
   name: target-app-monitor
   namespace: monitoring
   labels:
-    release: prometheus # Phải khớp với tên khi bạn dùng helm install
+    release: monitoring 
 spec:
   selector:
     matchLabels:
@@ -12,6 +12,6 @@ spec:
   namespaceSelector:
     any: true # Quét tất cả các namespace để tìm App
   endpoints:
-  - port: http # Tên này giờ đã khớp với cái name: http mình vừa thêm ở Bước 1
+  - port: http
     path: /metrics
     interval: 1s
