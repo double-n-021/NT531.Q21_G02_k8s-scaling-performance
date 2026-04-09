@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ai-mock-agent
+  namespace: nt531-env
+  labels:
+    app: ai-agent
+spec:
+  containers:
+  - name: ai-container  # Đặt tên cực đơn giản
+    image: python:3.9-slim
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        pip install prometheus_client -q && 
+        echo "--- DANH SACH FILE TRONG /app ---" &&
+        ls -R /app && 
+        echo "--- BAT DAU CHAY PYTHON ---" &&
+        python3 -u /app/mock_agent.py
+    volumeMounts:
+    - name: script-vol
+      mountPath: /app
+  volumes:
+  - name: script-vol
+    configMap:
+      name: ai-mock-script

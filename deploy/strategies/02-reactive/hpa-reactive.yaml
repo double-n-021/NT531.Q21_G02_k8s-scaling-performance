@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: target-app-hpa
+  name: target-app-reactive
   namespace: nt531-env
 spec:
   scaleTargetRef:
