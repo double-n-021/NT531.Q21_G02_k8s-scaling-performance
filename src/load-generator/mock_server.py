@@ -1,15 +1,20 @@
 from fastapi import FastAPI, Request
 import time
+import math
 import uvicorn
 
 app = FastAPI()
 
+def execute_cpu_intensive_task(iterations=200_000):
+    result = 0
+    for i in range(iterations):
+        result += math.sqrt(i)
+    return result
+
 @app.post("/collect")
-async def collect_data(request: Request):
-    data = await request.json()
-    
-    # Giả lập delay xử lý của server (50ms)
-    time.sleep(0.05) 
+def collect_data(request: Request):
+    # Vắt kiệt CPU thay vì ngủ đông
+    execute_cpu_intensive_task()
     
     return {"status": "ok", "message": "Received vital signs"}
 

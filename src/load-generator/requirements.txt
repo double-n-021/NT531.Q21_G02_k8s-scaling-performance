@@ -1,3 +1,5 @@
 locust>=2.20
 pyyaml>=6.0
 requests>=2.31
+fastapi>=0.100.0
+uvicorn>=0.23.0

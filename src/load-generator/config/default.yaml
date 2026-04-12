@@ -1,61 +1,56 @@
 # config/default.yaml
 # ============================================================
-# NT531 Load Generator — Tham số traffic profiles
+# NT531 Load Generator — ĐÃ CẬP NHẬT THEO CALIBRATION (K=2)
 # ============================================================
-# PLACEHOLDER — thay bằng giá trị calibration thật sau KB0.
-# Sau calibration, copy file này thành calibrated.yaml và cập nhật.
-
 target:
-  host: "http://localhost:8081"     # IP Nginx Ingress NodePort — thay đổi theo testbed
-  endpoint: "/collect"              # FastAPI endpoint trên processing service
+  host: "http://localhost:8000"     # Hãy đổi thành IP Ingress của k3s
+  endpoint: "/collect"
 
-# --- Tham số từ Calibration (PLACEHOLDER — thay sau KB0) ---
+# --- Tham số từ Calibration K=2 ---
 calibration:
-  mu: 30.0                # service rate (req/s/pod) — ước lượng, sẽ đo lại
-  lambda_normal: 20       # tải ổn định (req/s) — ~30% capacity k=2
-  lambda_cap: 50          # tải bắt đầu bão hòa k=2 (req/s)
-  lambda_max: 100         # tải đỉnh spike (req/s) — ~gấp 2x capacity
+  lambda_normal: 1        # tải ổn định (1 req/s) — Dưới mức bão hòa 0.6
+  lambda_cap: 4           # tải kịch trần k=2 (~4 req/s)
+  lambda_max: 10          # tải đỉnh spike (10 req/s) — Đủ để gây nghẽn nặng cho K=2
 
 # --- Traffic Profiles ---
 profiles:
   stable:
-    duration: 180          # giây
-    users: 20              # concurrent users ≈ lambda_normal
-    spawn_rate: 20         # tất cả user lên ngay (instant)
+    duration: 180
+    users: 1              # Chạy tà tà 1 req/s
+    spawn_rate: 1
 
   ramp:
     duration: 300
     stages:
-      - {duration: 60,  users: 20,  spawn_rate: 5}    # warm-up = lambda_normal
-      - {duration: 120, users: 80,  spawn_rate: 1}     # ramp dần lên cao
-      - {duration: 60,  users: 100, spawn_rate: 2}     # peak = lambda_max
-      - {duration: 60,  users: 20,  spawn_rate: 5}     # cool-down
+      - {duration: 60,  users: 1,   spawn_rate: 1}     # warm-up 
+      - {duration: 120, users: 4,   spawn_rate: 1}     # ramp dần lên mức cap
+      - {duration: 60,  users: 10,  spawn_rate: 2}     # peak (quá tải)
+      - {duration: 60,  users: 1,   spawn_rate: 5}     # cool-down
 
   spike:
     duration: 180
     stages:
-      - {duration: 60,  users: 20,  spawn_rate: 20}    # baseline
-      - {duration: 10,  users: 100, spawn_rate: 50}    # SPIKE lên lambda_max (đột ngột)
-      - {duration: 50,  users: 100, spawn_rate: 1}     # giữ spike
-      - {duration: 60,  users: 20,  spawn_rate: 10}    # drop
+      - {duration: 60,  users: 1,   spawn_rate: 1}     # baseline
+      - {duration: 10,  users: 10,  spawn_rate: 10}    # SPIKE đột ngột lên 10 req/s
+      - {duration: 50,  users: 10,  spawn_rate: 1}     # giữ spike
+      - {duration: 60,  users: 1,   spawn_rate: 10}    # drop về bình thường
 
   spike_recovery:
     duration: 240
     stages:
-      - {duration: 60,  users: 20,  spawn_rate: 20}    # baseline
-      - {duration: 10,  users: 100, spawn_rate: 50}    # SPIKE
-      - {duration: 30,  users: 100, spawn_rate: 1}     # sustain
-      - {duration: 20,  users: 20,  spawn_rate: 10}    # drop nhanh
-      - {duration: 120, users: 20,  spawn_rate: 1}     # RECOVERY observation (đo MTTR)
+      - {duration: 60,  users: 1,   spawn_rate: 1}     # baseline
+      - {duration: 10,  users: 10,  spawn_rate: 10}    # SPIKE
+      - {duration: 30,  users: 10,  spawn_rate: 1}     # sustain
+      - {duration: 20,  users: 1,   spawn_rate: 10}    # drop nhanh
+      - {duration: 120, users: 1,   spawn_rate: 1}     # RECOVERY observation
 
   oscillating:
     duration: 360
-    low_users: 20          # lambda_normal — đáy sóng
-    high_users: 80         # lambda_cap — đỉnh sóng
-    cycle_duration: 120    # 60s lên + 60s xuống = 1 chu kỳ
+    low_users: 1           # đáy sóng
+    high_users: 5          # đỉnh sóng (vừa đủ vượt mức cap 4.3 một chút)
+    cycle_duration: 120    
 
-# --- Experiment ---
 experiment:
-  runs_per_combo: 5        # lặp 5 lần mỗi tổ hợp (strategy x profile)
-  reset_wait: 420          # 7 phút verified reset giữa các run
-  csv_dir: "results"       # thư mục output
+  runs_per_combo: 5        
+  reset_wait: 420          
+  csv_dir: "results"
