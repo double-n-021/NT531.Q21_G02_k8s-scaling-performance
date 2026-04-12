@@ -77,7 +77,7 @@ class VitalSignUser(HttpUser):
                 "temperature": round(random.uniform(36.0, 39.5), 1),
             },
         }
-        self.client.get(
+        self.client.post(
             ENDPOINT,
             json=payload,
             name="/collect",  # Gộp tất cả requests dưới 1 tên trong stats

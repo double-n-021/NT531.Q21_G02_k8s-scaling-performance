@@ -7,7 +7,7 @@
 
 target:
   host: "http://localhost:8081"     # IP Nginx Ingress NodePort — thay đổi theo testbed
-  endpoint: "/process"              # FastAPI endpoint trên processing service
+  endpoint: "/collect"              # FastAPI endpoint trên processing service
 
 # --- Tham số từ Calibration (PLACEHOLDER — thay sau KB0) ---
 calibration:

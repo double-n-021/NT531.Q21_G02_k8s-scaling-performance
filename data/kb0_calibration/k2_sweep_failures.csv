@@ -1,2 +1,1 @@
 Method,Name,Error,Occurrences
-GET,/collect,RemoteDisconnected('Remote end closed connection without response'),1
