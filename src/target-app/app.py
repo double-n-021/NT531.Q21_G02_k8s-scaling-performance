@@ -1,4 +1,4 @@
-from prometheus_client import Histogram, Gauge, generate_latest
+from prometheus_client import Histogram, Gauge, Counter, generate_latest
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
 import time
@@ -24,6 +24,13 @@ ACTIVE_REQUESTS = Gauge(
     'Number of requests currently being processed by thread pool'
 )
 
+# Counter để tính Throughput và Error Rate (MỚI THÊM)
+HTTP_REQUESTS_TOTAL = Counter(
+    'http_requests_total', 
+    'Total number of HTTP requests',
+    ['method', 'endpoint', 'code']
+)
+
 # 2. Định nghĩa cấu trúc Payload mô phỏng dữ liệu y sinh từ Locust
 class VitalSigns(BaseModel):
     heart_rate: int
@@ -42,6 +49,15 @@ async def add_start_time(request: Request, call_next):
     # Thời điểm sự kiện mạng bắt đầu được event-loop tiếp nhận
     request.state.queue_start_time = time.time()
     response = await call_next(request)
+    
+    # Ghi nhận Counter sau khi có response (để lấy được status code)
+    # Labels giúp Quyên lọc được 200 (Thành công) hay 500 (Lỗi) trên Grafana
+    HTTP_REQUESTS_TOTAL.labels(
+        method=request.method,
+        endpoint=request.url.path,
+        code=response.status_code
+    ).inc()
+    
     return response
 
 # Hàm giả lập CPU-Bound (Sử dụng vòng lặp để vắt kiệt CPU)

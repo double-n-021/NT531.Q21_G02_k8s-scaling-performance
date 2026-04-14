@@ -2,13 +2,12 @@
   "profile": "ramp",
   "config_file": "config/default.yaml",
   "seed": 42,
-  "start_epoch": 1775747933.018743,
-  "start_iso": "2026-04-09T22:18:53+0700",
-  "host": "http://localhost:8081",
+  "start_epoch": 1776169823.561691,
+  "start_iso": "2026-04-14T19:30:23+0700",
+  "host": "http://localhost:8080",
   "calibration": {
-    "mu": 30.0,
-    "lambda_normal": 20,
-    "lambda_cap": 50,
-    "lambda_max": 100
+    "lambda_normal": 1,
+    "lambda_cap": 4,
+    "lambda_max": 10
   }
 }

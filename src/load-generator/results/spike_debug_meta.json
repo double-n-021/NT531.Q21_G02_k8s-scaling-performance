@@ -2,8 +2,8 @@
   "profile": "spike",
   "config_file": "config/default.yaml",
   "seed": 42,
-  "start_epoch": 1774810890.941727,
-  "start_iso": "2026-03-30T02:01:30+0700",
+  "start_epoch": 1775785466.693869,
+  "start_iso": "2026-04-10T08:44:26+0700",
   "host": "http://localhost:8000",
   "calibration": {
     "mu": 30.0,
