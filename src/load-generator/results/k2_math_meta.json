@@ -1,0 +1,13 @@
+{
+  "profile": "ramp",
+  "config_file": "config/default.yaml",
+  "seed": 42,
+  "start_epoch": 1776269194.5564103,
+  "start_iso": "2026-04-15T23:06:34+0700",
+  "host": "http://100.99.156.17:8888",
+  "calibration": {
+    "lambda_normal": 1,
+    "lambda_cap": 4,
+    "lambda_max": 10
+  }
+}
