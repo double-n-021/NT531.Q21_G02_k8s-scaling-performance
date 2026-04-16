@@ -1,0 +1,13 @@
+{
+  "profile": "ramp",
+  "config_file": "config/k2.yaml",
+  "seed": 44,
+  "start_epoch": 1776365490.459286,
+  "start_iso": "2026-04-17T01:51:30+0700",
+  "host": "http://100.99.156.17:8888",
+  "calibration": {
+    "lambda_normal": 1,
+    "lambda_cap": 4,
+    "lambda_max": 10
+  }
+}
