@@ -50,6 +50,6 @@ profiles:
     cycle_duration: 120    
 
 experiment:
-  runs_per_combo: 5        
-  reset_wait: 420          
+  runs_per_combo: 3        
+  reset_wait: 180          
   csv_dir: "results"
