@@ -200,20 +200,20 @@ def on_test_start(environment, **kwargs):
 
 @events.request.add_listener
 def on_request(request_type, name, response_time, response_length,
-               exception, context, **kwargs):
+               exception, context, start_time, **kwargs):
     """
     Fire sau mỗi request hoàn thành.
     Ghi timestamp chính xác đến microsecond → dùng tính inter-arrival times.
 
     Inter-arrival time Δtᵢ = tᵢ₊₁ − tᵢ (giây)
-    KS test: H₀: Δtᵢ ~ Exponential(λ)  →  p ≥ 0.05 → Poisson hợp lệ
+    Dùng start_time của Locust (thời điểm request được sinh ra) thay vì time.time()
+    để đảm bảo ghi nhận đúng Arrival Process.
     """
     if _ts_file is None or _ts_file.closed:
         return
-    ts = time.time()                          # epoch seconds, float (microsecond precision)
     ok = 0 if exception else 1
     rt = round(response_time, 2)              # ms, từ Locust
-    _ts_file.write(f"{ts:.6f},{name},{rt},{ok}\n")
+    _ts_file.write(f"{start_time:.6f},{name},{rt},{ok}\n")
 
 
 @events.test_stop.add_listener
