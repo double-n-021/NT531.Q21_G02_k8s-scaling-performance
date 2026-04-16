@@ -100,7 +100,7 @@ class TrafficShape(LoadTestShape):
         self.profile_config = CONFIG["profiles"].get(PROFILE, {})
         self.timeline = []
 
-        if self.profile_name not in ("stable", "oscillating"):
+        if self.profile_name != "oscillating":
             self._build_timeline()
 
     def _build_timeline(self):

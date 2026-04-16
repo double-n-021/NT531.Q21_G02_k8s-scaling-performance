@@ -45,7 +45,10 @@ for P in "${PROFILES[@]}"; do
     export LOCUST_CONFIG="$CONFIG"
     export LOCUST_OUT_DIR=${LOCUST_OUT_DIR:-"results"}
     
-    bash "./scripts/run_benchmark.sh" "$STRATEGY" "$P" "$REPEATS" "$HOST"
+    # Lấy reset_wait từ config (mặc định 420 nếu không thấy)
+    WAIT_TIME=$(python3 -c "import yaml; c=yaml.safe_load(open('$CONFIG')); print(c['experiment'].get('reset_wait', 420))")
+    
+    bash "./scripts/run_benchmark.sh" "$STRATEGY" "$P" "$REPEATS" "$HOST" "$WAIT_TIME"
     
     echo -e "\e[32m>>> FINISHED PROFILE: $P <<<\e[0m"
     echo "------------------------------------------------------------"
