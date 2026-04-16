@@ -155,10 +155,17 @@ class TrafficShape(LoadTestShape):
         return (max(1, users), 10)
 
 
+# ── Global state cho timestamp logger ─────────────────────
+_ts_file = None   # file handle cho raw timestamp log
+_ts_path = None   # path để in ra lúc kết thúc
+
+
 # ── Event Hooks ─────────────────────────────────────────────
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
     """Ghi metadata khi test bắt đầu — dùng cho cross-reference với Prometheus."""
+    global _ts_file, _ts_path
+
     meta = {
         "profile": PROFILE,
         "config_file": CONFIG_PATH,
@@ -178,14 +185,46 @@ def on_test_start(environment, **kwargs):
     with open(meta_file, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
 
+    # ── Mở file raw timestamps (cho KS test / Q-Q plot kiểm chứng Poisson) ──
+    # Mỗi dòng = 1 request: epoch_s (giây, 6 chữ số thập phân), name, response_time_ms, success
+    _ts_path = os.path.join(csv_dir, f"{run_id}_timestamps.csv")
+    _ts_file = open(_ts_path, "w", encoding="utf-8", buffering=1)  # line-buffered
+    _ts_file.write("epoch_s,name,response_time_ms,success\n")
+
     print(f"[META] Test started: {meta['start_iso']}")
     print(f"[META] Profile: {PROFILE}, Seed: {SEED}")
     print(f"[META] Host: {environment.host}")
     print(f"[META] Metadata saved to: {meta_file}")
+    print(f"[META] Raw timestamps → {_ts_path}")
+
+
+@events.request.add_listener
+def on_request(request_type, name, response_time, response_length,
+               exception, context, **kwargs):
+    """
+    Fire sau mỗi request hoàn thành.
+    Ghi timestamp chính xác đến microsecond → dùng tính inter-arrival times.
+
+    Inter-arrival time Δtᵢ = tᵢ₊₁ − tᵢ (giây)
+    KS test: H₀: Δtᵢ ~ Exponential(λ)  →  p ≥ 0.05 → Poisson hợp lệ
+    """
+    if _ts_file is None or _ts_file.closed:
+        return
+    ts = time.time()                          # epoch seconds, float (microsecond precision)
+    ok = 0 if exception else 1
+    rt = round(response_time, 2)              # ms, từ Locust
+    _ts_file.write(f"{ts:.6f},{name},{rt},{ok}\n")
 
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
-    """Log kết thúc test."""
+    """Đóng file timestamps và in thống kê."""
+    global _ts_file
     stop_time = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     print(f"[META] Test stopped: {stop_time}")
+
+    if _ts_file and not _ts_file.closed:
+        _ts_file.flush()
+        _ts_file.close()
+        print(f"[META] Raw timestamps saved → {_ts_path}")
+        print(f"[META] Use timestamps.csv for KS test (inter-arrival Poisson check)")
