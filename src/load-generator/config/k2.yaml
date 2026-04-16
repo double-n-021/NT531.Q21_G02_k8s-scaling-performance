@@ -1,0 +1,56 @@
+# config/k2.yaml
+# ============================================================
+# NT531 Load Generator — Cấu hình chuẩn cho K=2 Pods
+# ============================================================
+target:
+  host: "http://localhost:8000"     # Hãy đổi thành IP Ingress của k3s
+  endpoint: "/collect"
+
+# --- Tham số từ Calibration K=2 ---
+calibration:
+  lambda_normal: 1        # tải ổn định (1 req/s)
+  lambda_cap: 4           # tải kịch trần k=2 (~4 req/s)
+  lambda_max: 10          # tải đỉnh spike (10 req/s) — Đủ để gây nghẽn nặng cho K=2
+
+# --- Traffic Profiles ---
+profiles:
+  stable:
+    duration: 180
+    users: 1
+    spawn_rate: 1
+
+  ramp:
+    duration: 300
+    stages:
+      - {duration: 60,  users: 1,   spawn_rate: 1}     # warm-up 
+      - {duration: 120, users: 4,   spawn_rate: 1}     # ramp dần lên mức cap
+      - {duration: 60,  users: 10,  spawn_rate: 2}     # peak (quá tải)
+      - {duration: 60,  users: 1,   spawn_rate: 5}     # cool-down
+
+  spike:
+    duration: 180
+    stages:
+      - {duration: 60,  users: 1,   spawn_rate: 1}     # baseline
+      - {duration: 10,  users: 10,  spawn_rate: 10}    # SPIKE đột ngột
+      - {duration: 50,  users: 10,  spawn_rate: 1}     # giữ spike
+      - {duration: 60,  users: 1,   spawn_rate: 10}    # drop về bình thường
+
+  spike_recovery:
+    duration: 240
+    stages:
+      - {duration: 60,  users: 1,   spawn_rate: 1}     # baseline
+      - {duration: 10,  users: 10,  spawn_rate: 10}    # SPIKE
+      - {duration: 30,  users: 10,  spawn_rate: 1}     # sustain
+      - {duration: 20,  users: 1,   spawn_rate: 10}    # drop nhanh
+      - {duration: 120, users: 1,   spawn_rate: 1}     # RECOVERY observation
+
+  oscillating:
+    duration: 360
+    low_users: 1           # đáy sóng
+    high_users: 5          # đỉnh sóng
+    cycle_duration: 120    
+
+experiment:
+  runs_per_combo: 5        
+  reset_wait: 420          
+  csv_dir: "results"

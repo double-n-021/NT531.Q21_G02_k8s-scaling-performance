@@ -1,0 +1,54 @@
+# config/k8.yaml
+# ============================================================
+# NT531 Load Generator — Cấu hình chuẩn cho K=8 Pods (Scaled 4x)
+# ============================================================
+target:
+  host: "http://localhost:8000"     
+  endpoint: "/collect"
+
+calibration:
+  lambda_normal: 4        
+  lambda_cap: 16           
+  lambda_max: 40          
+
+profiles:
+  stable:
+    duration: 180
+    users: 4
+    spawn_rate: 4
+
+  ramp:
+    duration: 300
+    stages:
+      - {duration: 60,  users: 4,   spawn_rate: 4}     
+      - {duration: 120, users: 16,  spawn_rate: 4}     
+      - {duration: 60,  users: 40,  spawn_rate: 8}     
+      - {duration: 60,  users: 4,   spawn_rate: 20}    
+
+  spike:
+    duration: 180
+    stages:
+      - {duration: 60,  users: 4,   spawn_rate: 4}     
+      - {duration: 10,  users: 40,  spawn_rate: 40}    
+      - {duration: 50,  users: 40,  spawn_rate: 4}     
+      - {duration: 60,  users: 4,   spawn_rate: 40}    
+
+  spike_recovery:
+    duration: 240
+    stages:
+      - {duration: 60,  users: 4,   spawn_rate: 4}     
+      - {duration: 10,  users: 40,  spawn_rate: 40}    
+      - {duration: 30,  users: 40,  spawn_rate: 4}     
+      - {duration: 20,  users: 4,   spawn_rate: 40}    
+      - {duration: 120, users: 4,   spawn_rate: 4}     
+
+  oscillating:
+    duration: 360
+    low_users: 4          
+    high_users: 20         
+    cycle_duration: 120    
+
+experiment:
+  runs_per_combo: 5        
+  reset_wait: 420          
+  csv_dir: "results"

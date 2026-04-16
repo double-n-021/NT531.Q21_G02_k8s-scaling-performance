@@ -1,0 +1,54 @@
+# config/k6.yaml
+# ============================================================
+# NT531 Load Generator — Cấu hình chuẩn cho K=6 Pods (Scaled 3x)
+# ============================================================
+target:
+  host: "http://localhost:8000"     
+  endpoint: "/collect"
+
+calibration:
+  lambda_normal: 3        
+  lambda_cap: 12           
+  lambda_max: 30          
+
+profiles:
+  stable:
+    duration: 180
+    users: 3
+    spawn_rate: 3
+
+  ramp:
+    duration: 300
+    stages:
+      - {duration: 60,  users: 3,   spawn_rate: 3}     
+      - {duration: 120, users: 12,  spawn_rate: 3}     
+      - {duration: 60,  users: 30,  spawn_rate: 6}     
+      - {duration: 60,  users: 3,   spawn_rate: 15}    
+
+  spike:
+    duration: 180
+    stages:
+      - {duration: 60,  users: 3,   spawn_rate: 3}     
+      - {duration: 10,  users: 30,  spawn_rate: 30}    
+      - {duration: 50,  users: 30,  spawn_rate: 3}     
+      - {duration: 60,  users: 3,   spawn_rate: 30}    
+
+  spike_recovery:
+    duration: 240
+    stages:
+      - {duration: 60,  users: 3,   spawn_rate: 3}     
+      - {duration: 10,  users: 30,  spawn_rate: 30}    
+      - {duration: 30,  users: 30,  spawn_rate: 3}     
+      - {duration: 20,  users: 3,   spawn_rate: 30}    
+      - {duration: 120, users: 3,   spawn_rate: 3}     
+
+  oscillating:
+    duration: 360
+    low_users: 3          
+    high_users: 15         
+    cycle_duration: 120    
+
+experiment:
+  runs_per_combo: 5        
+  reset_wait: 420          
+  csv_dir: "results"

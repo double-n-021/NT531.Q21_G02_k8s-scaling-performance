@@ -1,0 +1,54 @@
+# config/k4.yaml
+# ============================================================
+# NT531 Load Generator — Cấu hình chuẩn cho K=4 Pods (Scaled 2x)
+# ============================================================
+target:
+  host: "http://localhost:8000"     # Hãy đổi thành IP Ingress của k3s
+  endpoint: "/collect"
+
+calibration:
+  lambda_normal: 2        
+  lambda_cap: 8           
+  lambda_max: 20          
+
+profiles:
+  stable:
+    duration: 180
+    users: 2
+    spawn_rate: 2
+
+  ramp:
+    duration: 300
+    stages:
+      - {duration: 60,  users: 2,   spawn_rate: 2}     
+      - {duration: 120, users: 8,   spawn_rate: 2}     
+      - {duration: 60,  users: 20,  spawn_rate: 4}     
+      - {duration: 60,  users: 2,   spawn_rate: 10}    
+
+  spike:
+    duration: 180
+    stages:
+      - {duration: 60,  users: 2,   spawn_rate: 2}     
+      - {duration: 10,  users: 20,  spawn_rate: 20}    
+      - {duration: 50,  users: 20,  spawn_rate: 2}     
+      - {duration: 60,  users: 2,   spawn_rate: 20}    
+
+  spike_recovery:
+    duration: 240
+    stages:
+      - {duration: 60,  users: 2,   spawn_rate: 2}     
+      - {duration: 10,  users: 20,  spawn_rate: 20}    
+      - {duration: 30,  users: 20,  spawn_rate: 2}     
+      - {duration: 20,  users: 2,   spawn_rate: 20}    
+      - {duration: 120, users: 2,   spawn_rate: 2}     
+
+  oscillating:
+    duration: 360
+    low_users: 2          
+    high_users: 10         
+    cycle_duration: 120    
+
+experiment:
+  runs_per_combo: 5        
+  reset_wait: 420          
+  csv_dir: "results"
