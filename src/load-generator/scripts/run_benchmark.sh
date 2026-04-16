@@ -25,6 +25,8 @@ RUNS=${3:-5}
 HOST=${4:-"http://192.168.1.100"}
 RESET_WAIT=${5:-420}  # 7 phút (420 giây)
 CONFIG=${LOCUST_CONFIG:-"config/default.yaml"}
+OUT_DIR=${LOCUST_OUT_DIR:-"results"}
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
@@ -75,7 +77,7 @@ for i in $(seq 1 "$RUNS"); do
             --users "$USERS" \
             --spawn-rate "$USERS" \
             --run-time "${DURATION}s" \
-            --csv "results/${RUN_ID}" \
+            --csv "${OUT_DIR}/${RUN_ID}" \
             --csv-full-history
     else
         # Ramp/Spike/Spike-Recovery/Oscillating: dùng LoadShape
@@ -86,7 +88,7 @@ for i in $(seq 1 "$RUNS"); do
         locust -f locustfile.py \
             --host "$HOST" \
             --headless \
-            --csv "results/${RUN_ID}" \
+            --csv "${OUT_DIR}/${RUN_ID}" \
             --csv-full-history
     fi
 
