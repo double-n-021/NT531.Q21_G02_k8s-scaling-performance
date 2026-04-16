@@ -62,35 +62,18 @@ for i in $(seq 1 "$RUNS"); do
     # 2. Chạy Locust
     echo "    [RUN] Starting Locust..."
 
-    if [ "$PROFILE" = "stable" ]; then
-        # Stable: dùng --users/--spawn-rate (không dùng LoadShape)
-        USERS=$(python3 -c "import yaml; c=yaml.safe_load(open('${CONFIG}')); print(c['profiles']['stable']['users'])")
-        DURATION=$(python3 -c "import yaml; c=yaml.safe_load(open('${CONFIG}')); print(c['profiles']['stable']['duration'])")
+    # Chạy Locust (Tất cả profiles đều dùng LoadShape trong locustfile.py)
+    echo "    [RUN] Starting Locust..."
 
-        PROFILE="$PROFILE" \
-        LOCUST_CONFIG="$CONFIG" \
-        LOCUST_SEED="$SEED" \
-        RUN_ID="$RUN_ID" \
-        locust -f locustfile.py \
-            --host "$HOST" \
-            --headless \
-            --users "$USERS" \
-            --spawn-rate "$USERS" \
-            --run-time "${DURATION}s" \
-            --csv "${OUT_DIR}/${RUN_ID}" \
-            --csv-full-history
-    else
-        # Ramp/Spike/Spike-Recovery/Oscillating: dùng LoadShape
-        PROFILE="$PROFILE" \
-        LOCUST_CONFIG="$CONFIG" \
-        LOCUST_SEED="$SEED" \
-        RUN_ID="$RUN_ID" \
-        locust -f locustfile.py \
-            --host "$HOST" \
-            --headless \
-            --csv "${OUT_DIR}/${RUN_ID}" \
-            --csv-full-history
-    fi
+    PROFILE="$PROFILE" \
+    LOCUST_CONFIG="$CONFIG" \
+    LOCUST_SEED="$SEED" \
+    RUN_ID="$RUN_ID" \
+    locust -f locustfile.py \
+        --host "$HOST" \
+        --headless \
+        --csv "${OUT_DIR}/${RUN_ID}" \
+        --csv-full-history
 
     echo "    [DONE] Run ${i} completed."
 

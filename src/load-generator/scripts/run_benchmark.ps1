@@ -40,28 +40,11 @@ for ($i = 1; $i -le $Runs; $i++) {
     $env:LOCUST_SEED = $Seed
     $env:RUN_ID = $RunId
 
-    if ($Profile -eq "stable") {
-        # Stable: read users/duration from config
-        $cfg = python -c "import yaml; c=yaml.safe_load(open('$Config')); print(c['profiles']['stable']['users'], c['profiles']['stable']['duration'])"
-        $parts = $cfg -split ' '
-        $Users = $parts[0]
-        $Duration = $parts[1]
-
-        locust -f locustfile.py `
-            --host $Host `
-            --headless `
-            --users $Users `
-            --spawn-rate $Users `
-            --run-time "${Duration}s" `
-            --csv "results/${RunId}" `
-            --csv-full-history
-    } else {
-        locust -f locustfile.py `
-            --host $Host `
-            --headless `
-            --csv "results/${RunId}" `
-            --csv-full-history
-    }
+    locust -f locustfile.py `
+        --host $Host `
+        --headless `
+        --csv "results/${RunId}" `
+        --csv-full-history
 
     Write-Host "    [DONE] Run ${i} completed."
 

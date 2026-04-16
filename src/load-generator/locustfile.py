@@ -121,10 +121,6 @@ class TrafficShape(LoadTestShape):
         """Trả về (user_count, spawn_rate) mỗi giây."""
         run_time = self.get_run_time()
 
-        # Stable: không dùng Shape — return None để Locust dùng --users
-        if self.profile_name == "stable":
-            return None
-
         # Oscillating: sin wave
         if self.profile_name == "oscillating":
             return self._oscillating_tick(run_time)

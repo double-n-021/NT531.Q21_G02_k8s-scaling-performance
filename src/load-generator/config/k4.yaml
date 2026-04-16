@@ -13,39 +13,38 @@ calibration:
 
 profiles:
   stable:
-    duration: 180
-    users: 2
-    spawn_rate: 2
-
-  ramp:
     duration: 300
     stages:
+      - {duration: 300, users: 2, spawn_rate: 2}
+
+  ramp:
+    duration: 480
+    stages:
       - {duration: 60,  users: 2,   spawn_rate: 2}     
-      - {duration: 120, users: 8,   spawn_rate: 2}     
-      - {duration: 60,  users: 20,  spawn_rate: 4}     
+      - {duration: 360, users: 20,  spawn_rate: 0.1}   
       - {duration: 60,  users: 2,   spawn_rate: 10}    
 
   spike:
-    duration: 180
+    duration: 300
     stages:
       - {duration: 60,  users: 2,   spawn_rate: 2}     
-      - {duration: 10,  users: 20,  spawn_rate: 20}    
-      - {duration: 50,  users: 20,  spawn_rate: 2}     
-      - {duration: 60,  users: 2,   spawn_rate: 20}    
+      - {duration: 1,   users: 20,  spawn_rate: 20}    
+      - {duration: 60,  users: 20,  spawn_rate: 2}     
+      - {duration: 179, users: 2,   spawn_rate: 20}    
 
   spike_recovery:
-    duration: 240
+    duration: 420
     stages:
       - {duration: 60,  users: 2,   spawn_rate: 2}     
-      - {duration: 10,  users: 20,  spawn_rate: 20}    
-      - {duration: 30,  users: 20,  spawn_rate: 2}     
-      - {duration: 20,  users: 2,   spawn_rate: 20}    
-      - {duration: 120, users: 2,   spawn_rate: 2}     
+      - {duration: 1,   users: 20,  spawn_rate: 20}    
+      - {duration: 60,  users: 20,  spawn_rate: 2}     
+      - {duration: 1,   users: 2,   spawn_rate: 20}    
+      - {duration: 298, users: 2,   spawn_rate: 2}     
 
   oscillating:
-    duration: 360
+    duration: 300
     low_users: 2          
-    high_users: 10         
+    high_users: 14         
     cycle_duration: 120    
 
 experiment:
