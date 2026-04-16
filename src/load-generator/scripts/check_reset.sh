@@ -15,11 +15,11 @@ HOST=${1:-"http://192.168.1.100"}
 MAX_RETRIES=30
 INTERVAL=10  # giây
 
-echo "    Checking: ${HOST}/health-check"
+echo "    Checking: ${HOST}/health"
 
 for i in $(seq 1 $MAX_RETRIES); do
     # Check 1: HTTP 200
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${HOST}/health-check" 2>/dev/null)
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${HOST}/health" 2>/dev/null)
     if [ "$HTTP_CODE" != "200" ]; then
         echo "    [WAIT] Health: HTTP ${HTTP_CODE} (retry ${i}/${MAX_RETRIES})"
         sleep $INTERVAL
@@ -27,7 +27,7 @@ for i in $(seq 1 $MAX_RETRIES); do
     fi
 
     # Check 2: Latency thấp
-    LATENCY=$(curl -s -o /dev/null -w "%{time_total}" "${HOST}/health-check" 2>/dev/null)
+    LATENCY=$(curl -s -o /dev/null -w "%{time_total}" "${HOST}/health" 2>/dev/null)
     LATENCY_MS=$(echo "$LATENCY * 1000" | bc 2>/dev/null || echo "999")
 
     # So sánh — nếu > 100ms thì chưa sạch
