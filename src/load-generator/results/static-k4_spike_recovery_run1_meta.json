@@ -1,0 +1,13 @@
+{
+  "profile": "spike_recovery",
+  "config_file": "config/k4.yaml",
+  "seed": 43,
+  "start_epoch": 1776377367.7852979,
+  "start_iso": "2026-04-17T05:09:27+0700",
+  "host": "http://100.99.156.17:8888",
+  "calibration": {
+    "lambda_normal": 2,
+    "lambda_cap": 8,
+    "lambda_max": 20
+  }
+}
