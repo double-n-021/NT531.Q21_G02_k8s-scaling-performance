@@ -10,7 +10,7 @@
 #   ./scripts/run_kb1_suite.sh 2 http://192.168.1.100:8000 5
 # ============================================================
 
-set -e
+set +e
 
 K=${1:?"Usage: $0 <K> <host> [repeats]"}
 HOST=${2:?"Usage: $0 <K> <host> [repeats]"}

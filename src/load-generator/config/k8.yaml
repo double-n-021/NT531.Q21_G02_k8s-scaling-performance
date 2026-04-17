@@ -1,53 +1,49 @@
-# config/k8.yaml
-# ============================================================
-# NT531 Load Generator — Cấu hình chuẩn cho K=8 Pods (Scaled 4x)
-# ============================================================
 target:
-  host: "http://localhost:8000"     
+  host: "http://100.99.156.17:8888"
   endpoint: "/collect"
 
 calibration:
-  lambda_normal: 4        
-  lambda_cap: 16           
-  lambda_max: 40          
+  lambda_normal: 4
+  lambda_cap: 16
+  lambda_max: 40
 
 profiles:
   stable:
     duration: 300
     stages:
-      - {duration: 300, users: 4, spawn_rate: 4}
+      - {duration: 300, users: 4, spawn_rate: 2}
 
   ramp:
     duration: 480
     stages:
-      - {duration: 60,  users: 4,   spawn_rate: 4}     
-      - {duration: 360, users: 40,  spawn_rate: 0.1}   
-      - {duration: 60,  users: 4,   spawn_rate: 20}    
+      - {duration: 60,  users: 4,   spawn_rate: 2}
+      - {duration: 360, users: 40,  spawn_rate: 0.1}
+      - {duration: 60,  users: 4,   spawn_rate: 10}
 
   spike:
     duration: 300
     stages:
-      - {duration: 60,  users: 4,   spawn_rate: 4}     
-      - {duration: 1,   users: 40,  spawn_rate: 40}    
-      - {duration: 60,  users: 40,  spawn_rate: 4}     
-      - {duration: 179, users: 4,   spawn_rate: 40}    
+      - {duration: 60,  users: 4,   spawn_rate: 2}
+      - {duration: 1,   users: 40,  spawn_rate: 40}
+      - {duration: 60,  users: 40,  spawn_rate: 2}
+      - {duration: 179, users: 4,   spawn_rate: 40}
 
   spike_recovery:
     duration: 420
     stages:
-      - {duration: 60,  users: 4,   spawn_rate: 4}     
-      - {duration: 1,   users: 40,  spawn_rate: 40}    
-      - {duration: 60,  users: 40,  spawn_rate: 4}     
-      - {duration: 1,   users: 4,   spawn_rate: 40}    
-      - {duration: 298, users: 4,   spawn_rate: 4}     
+      - {duration: 60,  users: 4,   spawn_rate: 2}
+      - {duration: 1,   users: 40,  spawn_rate: 40}
+      - {duration: 60,  users: 40,  spawn_rate: 2}
+      - {duration: 1,   users: 4,   spawn_rate: 40}
+      - {duration: 298, users: 4,   spawn_rate: 2}
 
   oscillating:
     duration: 300
-    low_users: 4          
-    high_users: 28         
-    cycle_duration: 120    
+    low_users: 4
+    high_users: 28
+    cycle_duration: 120
 
 experiment:
-  runs_per_combo: 3        
-  reset_wait: 180          
+  runs_per_combo: 3
+  reset_wait: 180
   csv_dir: "results"
