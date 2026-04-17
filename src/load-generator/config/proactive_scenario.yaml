@@ -7,7 +7,7 @@
 # ============================================================
 
 target:
-  host: "http://localhost:8000"     # Hãy đổi thành IP Ingress của k3s
+  host: "http://<YOUR_VM_IP>:8888"     # VÍ DỤ: "http://192.168.1.10:8888"
   endpoint: "/collect"
 
 calibration:
