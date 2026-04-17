@@ -1,0 +1,13 @@
+{
+  "profile": "stable",
+  "config_file": "config/hpa_scenario.yaml",
+  "seed": 44,
+  "start_epoch": 1776392799.4565003,
+  "start_iso": "2026-04-17T09:26:39+0700",
+  "host": "http://100.99.156.17:8888",
+  "calibration": {
+    "lambda_normal": 2,
+    "lambda_cap": 10,
+    "lambda_max": 40
+  }
+}

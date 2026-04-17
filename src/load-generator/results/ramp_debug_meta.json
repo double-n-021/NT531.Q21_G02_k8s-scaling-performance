@@ -2,8 +2,8 @@
   "profile": "ramp",
   "config_file": "config/default.yaml",
   "seed": 42,
-  "start_epoch": 1776169823.561691,
-  "start_iso": "2026-04-14T19:30:23+0700",
+  "start_epoch": 1776265051.327765,
+  "start_iso": "2026-04-15T21:57:31+0700",
   "host": "http://localhost:8080",
   "calibration": {
     "lambda_normal": 1,

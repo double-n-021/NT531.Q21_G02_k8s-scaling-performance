@@ -1,0 +1,57 @@
+# config/proactive_scenario.yaml
+# ============================================================
+# NT531 Load Generator — Cấu hình kịch bản đo lường KEDA 
+# ============================================================
+# Tải này được thiết kế để ép KEDA phải scale-up từ 2 Pod lên tới 6 Pod
+# (Dựa trên ngưỡng 50% CPU Utilization và Calibration 1 Pod ~ 5 req/s)
+# ============================================================
+
+target:
+  host: "http://localhost:8000"     # Hãy đổi thành IP Ingress của k3s
+  endpoint: "/collect"
+
+calibration:
+  lambda_normal: 2        # 2 users (2 req/s) -> HPA giữ 2 Pod (IDLE)
+  lambda_cap: 10          # 10 users -> Ngưỡng bão hòa của 2 Pod
+  lambda_max: 40          # 40 users -> Vượt xa năng lực 2 Pod, ép scale lên 6 Pod
+
+profiles:
+  stable:
+    duration: 300
+    stages:
+      - {duration: 300, users: 2, spawn_rate: 2}
+
+  ramp:
+    duration: 480
+    stages:
+      - {duration: 60,  users: 2,   spawn_rate: 2}      # Baseline
+      - {duration: 360, users: 40,  spawn_rate: 0.2}    # Tăng dần lên 40 users
+      - {duration: 60,  users: 2,   spawn_rate: 10}     # Drop nhanh
+
+  spike:
+    duration: 300
+    stages:
+      - {duration: 60,  users: 2,   spawn_rate: 2}      # Baseline
+      - {duration: 1,   users: 40,  spawn_rate: 40}     # SPIKE cực mạnh
+      - {duration: 60,  users: 40,  spawn_rate: 2}      # Giữ đỉnh (Quan sát HPA phản ứng)
+      - {duration: 179, users: 2,   spawn_rate: 40}     # Về baseline
+
+  spike_recovery:
+    duration: 420
+    stages:
+      - {duration: 60,  users: 2,   spawn_rate: 2}      # Baseline
+      - {duration: 1,   users: 40,  spawn_rate: 40}     # Spike
+      - {duration: 60,  users: 40,  spawn_rate: 2}      # Giữ đỉnh
+      - {duration: 1,   users: 2,   spawn_rate: 40}     # Drop sạch
+      - {duration: 298, users: 2,   spawn_rate: 2}      # Quan sát KEDA SCALE-DOWN (Cool-down)
+
+  oscillating:
+    duration: 300
+    low_users: 2           
+    high_users: 30         # Dao động mạnh giữa 2 và 30 users
+    cycle_duration: 120    
+
+experiment:
+  runs_per_combo: 3        
+  reset_wait: 180          
+  csv_dir: "results"

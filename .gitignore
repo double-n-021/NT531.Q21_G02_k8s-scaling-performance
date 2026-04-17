@@ -13,10 +13,10 @@ env/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# Dữ liệu xuất ra từ bài test Locust (tránh push các file CSV rác nặng MBs)
-data/**/*.csv
+# Dữ liệu xuất ra từ bài test Locust (Tạm thời cho phép đẩy file CSV thực nghiệm)
+# data/**/*.csv
 !data/**/.gitkeep
-src/load-generator/results/*.csv
+# src/load-generator/results/*.csv
 
 # K3s/Kubernetes kubeconfig local
 kubeconfig
