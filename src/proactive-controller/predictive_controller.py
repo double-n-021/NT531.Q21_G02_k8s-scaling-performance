@@ -12,7 +12,7 @@ PROMETHEUS_URL = "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cl
 pc = PrometheusConnect(url=PROMETHEUS_URL, disable_ssl=True)
 
 # Metric thực tế lấy từ App của Quyên
-QUERY_REAL_LOAD = "sum(rate(http_requests_total{endpoint='/collect'}[1m]))"
+QUERY_REAL_LOAD = 'sum(rate(http_requests_total[2m]))'
 
 # Khai báo Metric để KEDA đọc (Khớp với file proactive-scaler.yaml)
 # Lưu ý: Gauge name phải là 'predicted_traffic_demand'
