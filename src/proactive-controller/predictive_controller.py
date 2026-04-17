@@ -8,7 +8,7 @@ import numpy as np
 # 1. CẤU HÌNH NỘI BỘ (INTERNAL K8S CONFIG)
 # ============================================================
 # Trỏ trực tiếp vào Service của Prometheus trong cluster
-PROMETHEUS_URL = "http://100.97.201.48:9090"
+PROMETHEUS_URL = "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
 pc = PrometheusConnect(url=PROMETHEUS_URL, disable_ssl=True)
 
 # Metric thực tế lấy từ App của Quyên

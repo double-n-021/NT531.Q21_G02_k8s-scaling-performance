@@ -53,5 +53,5 @@ profiles:
 
 experiment:
   runs_per_combo: 3        
-  reset_wait: 180          
+  reset_wait: 420          
   csv_dir: "results"
