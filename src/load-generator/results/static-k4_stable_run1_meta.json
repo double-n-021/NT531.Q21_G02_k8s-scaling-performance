@@ -2,8 +2,8 @@
   "profile": "stable",
   "config_file": "config/k4.yaml",
   "seed": 43,
-  "start_epoch": 1776374837.5770586,
-  "start_iso": "2026-04-17T04:27:17+0700",
+  "start_epoch": 1776386266.9064999,
+  "start_iso": "2026-04-17T07:37:46+0700",
   "host": "http://100.99.156.17:8888",
   "calibration": {
     "lambda_normal": 2,
