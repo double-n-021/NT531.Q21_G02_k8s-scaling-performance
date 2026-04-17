@@ -1,0 +1,13 @@
+{
+  "profile": "spike",
+  "config_file": "config/hpa_scenario.yaml",
+  "seed": 43,
+  "start_epoch": 1776394066.457558,
+  "start_iso": "2026-04-17T09:47:46+0700",
+  "host": "http://100.99.156.17:8888",
+  "calibration": {
+    "lambda_normal": 2,
+    "lambda_cap": 10,
+    "lambda_max": 40
+  }
+}
