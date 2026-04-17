@@ -7,7 +7,7 @@
 # ============================================================
 
 target:
-  host: "http://<YOUR_VM_IP>:8888"     # VÍ DỤ: "http://192.168.1.10:8888"
+  host: "http://100.99.156.17:8888"     # IP máy ảo của Kiên Võ
   endpoint: "/collect"
 
 calibration:
