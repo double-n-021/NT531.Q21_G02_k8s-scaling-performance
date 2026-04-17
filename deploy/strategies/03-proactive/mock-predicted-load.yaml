@@ -1,0 +1,80 @@
+# Mock exporter: cung cấp metric predicted_traffic_demand cho KEDA (KB3).
+# Áp dụng SAU khi namespace nt531-env đã tồn tại.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-mock-script
+  namespace: nt531-env
+data:
+  mock_agent.py: |
+    from prometheus_client import start_http_server, Gauge
+    import time
+    import random
+
+    PREDICTED_LOAD = Gauge(
+        "predicted_traffic_demand",
+        "Mock predicted load for KEDA Prometheus scaler (KB3 demo)",
+    )
+
+    if __name__ == "__main__":
+        start_http_server(8001, addr="0.0.0.0")
+        print("listening :8001 /metrics", flush=True)
+        while True:
+            # Dao động quanh ngưỡng KEDA (threshold=6 trong proactive-scaler.yaml)
+            val = random.choice([2, 4, 8, 14, 22, 38, 45])
+            PREDICTED_LOAD.set(val)
+            print(f"predicted_traffic_demand={val}", flush=True)
+            time.sleep(15)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-mock-predictor
+  namespace: nt531-env
+  labels:
+    app: ai-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-agent
+  template:
+    metadata:
+      labels:
+        app: ai-agent
+    spec:
+      containers:
+        - name: agent
+          image: python:3.11-slim
+          ports:
+            - name: metrics
+              containerPort: 8001
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              pip install --no-cache-dir prometheus_client -q
+              exec python -u /app/mock_agent.py
+          volumeMounts:
+            - name: script
+              mountPath: /app
+      volumes:
+        - name: script
+          configMap:
+            name: ai-mock-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-mock-predictor
+  namespace: nt531-env
+  labels:
+    app: ai-agent
+    nt531.io/scrape: predicted-load
+spec:
+  selector:
+    app: ai-agent
+  ports:
+    - name: metrics
+      port: 8001
+      targetPort: 8001

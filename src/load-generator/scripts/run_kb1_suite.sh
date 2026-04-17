@@ -43,7 +43,7 @@ for P in "${PROFILES[@]}"; do
     
     # Gán các biến môi trường
     export LOCUST_CONFIG="$CONFIG"
-    export LOCUST_OUT_DIR=${LOCUST_OUT_DIR:-"results"}
+    export LOCUST_OUT_DIR="../../data/kb1_static/k${K_LEVEL}"
     
     # Lấy reset_wait từ config (mặc định 420 nếu không thấy)
     WAIT_TIME=$(python3 -c "import yaml; c=yaml.safe_load(open('$CONFIG')); print(c['experiment'].get('reset_wait', 420))")

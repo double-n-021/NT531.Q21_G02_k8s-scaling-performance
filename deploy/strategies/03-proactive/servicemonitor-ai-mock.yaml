@@ -1,0 +1,22 @@
+# Prometheus Operator: scrape mock predicted_traffic_demand.
+# Đặt cùng namespace với Prometheus stack (thường là monitoring).
+# Label "release" phải khớp Helm kube-prometheus-stack của bạn (mặc định hay dùng: monitoring).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-mock-predictor
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      nt531.io/scrape: predicted-load
+  namespaceSelector:
+    matchNames:
+      - nt531-env
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s

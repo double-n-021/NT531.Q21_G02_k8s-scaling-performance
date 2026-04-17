@@ -28,7 +28,7 @@ for P in "${PROFILES[@]}"; do
     
     # Gán các biến môi trường
     export LOCUST_CONFIG="$CONFIG"
-    export LOCUST_OUT_DIR=${LOCUST_OUT_DIR:-"results"}
+    export LOCUST_OUT_DIR="../../data/kb2_reactive/hpa"
     
     # Lấy reset_wait từ config (mặc định 180 nếu không thấy)
     WAIT_TIME=$(python3 -c "import yaml; c=yaml.safe_load(open('$CONFIG')); print(c['experiment'].get('reset_wait', 180))")
