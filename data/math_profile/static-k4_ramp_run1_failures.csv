@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences
+POST,/collect,HTTPError('502 Server Error: Bad Gateway for url: /collect'),1
