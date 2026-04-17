@@ -1,14 +1,15 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: proactive-controller-monitor
+  name: predictive-controller-monitor
   namespace: monitoring
   labels:
-    release: prometheus
+    release: prometheus # Khớp với label của Prometheus Operator bạn đang dùng
 spec:
   selector:
     matchLabels:
-      app: proactive-controller
+      app: predictive-controller
   endpoints:
-    - port: metrics
-      interval: 10s
+  - port: metrics
+    interval: 10s # Quét dữ liệu AI mỗi 10s
+    path: /metrics

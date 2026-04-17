@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: predictive-controller
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: predictive-controller
+  template:
+    metadata:
+      labels:
+        app: predictive-controller
+    spec:
+      containers:
+      - name: predictive-controller
+        image: predictive-controller:latest # Đảm bảo Quyên đã build image này vào K3s/Docker
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: predictive-controller-service
+  namespace: monitoring
+  labels:
+    app: predictive-controller # Nhãn quan trọng để Monitor tìm thấy
+spec:
+  selector:
+    app: predictive-controller
+  ports:
+  - name: metrics # Đặt tên port để ServiceMonitor nhận diện
+    port: 9000
+    targetPort: 9000
+  type: ClusterIP

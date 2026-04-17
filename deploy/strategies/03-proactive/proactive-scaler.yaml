@@ -5,27 +5,34 @@ metadata:
   namespace: nt531-env
 spec:
   scaleTargetRef:
-    name: target-app
-  pollingInterval: 15
+    apiVersion: apps/v1
+    kind: Deployment
+    name: target-app # Khớp với tên App của bạn
+  pollingInterval: 10
   cooldownPeriod: 300
   minReplicaCount: 2
   maxReplicaCount: 6
   triggers:
   - type: prometheus
     metadata:
-      # Sửa lại địa chỉ Service chuẩn của Quyên
       serverAddress: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
-      threshold: '6'
-      query: |
-        sum(predicted_traffic_demand)
+      metricName: predicted_traffic_demand
+      threshold: '6' 
+      query: sum(predicted_traffic_demand)
   advanced:
     restoreToOriginalReplicaCount: true
     horizontalPodAutoscalerConfig:
       behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0 # Tăng tải ngay lập tức giống Reactive
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15
         scaleDown:
-          stabilizationWindowSeconds: 300
+          stabilizationWindowSeconds: 300 # Giữ ổn định 5 phút giống Reactive
+          selectPolicy: Min
           policies:
           - type: Pods
             value: 1
-            periodSeconds: 60
-          selectPolicy: Min
+            periodSeconds: 60 # Chỉ giảm 1 Pod mỗi phút
