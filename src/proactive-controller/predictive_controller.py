@@ -1,73 +1,165 @@
 import time
+import math
+import numpy as np
 from prometheus_api_client import PrometheusConnect
 from prometheus_client import start_http_server, Gauge
 from sklearn.linear_model import LinearRegression
-import numpy as np
+from kubernetes import client, config
 
 # ============================================================
-# 1. CẤU HÌNH NỘI BỘ (INTERNAL K8S CONFIG)
+# CONFIG
 # ============================================================
-# Trỏ trực tiếp vào Service của Prometheus trong cluster
-PROMETHEUS_URL = "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
-pc = PrometheusConnect(url=PROMETHEUS_URL, disable_ssl=True)
-
-# Metric thực tế lấy từ App của Quyên
+PROMETHEUS_URL = "http://100.99.156.17:9090"
 QUERY_REAL_LOAD = 'sum(rate(http_requests_total[2m]))'
 
-# Khai báo Metric để KEDA đọc (Khớp với file proactive-scaler.yaml)
-# Lưu ý: Gauge name phải là 'predicted_traffic_demand'
-PREDICTED_LOAD = Gauge('predicted_traffic_demand', 'Dự báo tải trong 30s tới từ AI')
-CURRENT_LOAD_GAUGE = Gauge('current_traffic_rate', 'Tải thực tế đo được')
+NAMESPACE = "nt531-env"
+DEPLOYMENT_NAME = "target-app"
 
+SCALING_THRESHOLD = 6.0
+MIN_PODS = 2
+MAX_PODS = 6
+
+SCRAPE_INTERVAL = 10
+
+# Smoothing
+EMA_ALPHA = 0.3
+
+# Anti-spike
+MAX_GROWTH_RATE = 1.5  # max +50% mỗi step
+
+# History
+MIN_HISTORY = 6
+MAX_HISTORY = 12
+
+# ============================================================
+# INIT
+# ============================================================
+pc = PrometheusConnect(url=PROMETHEUS_URL, disable_ssl=True)
+
+try:
+    config.load_incluster_config()
+except:
+    config.load_kube_config()
+
+apps_v1 = client.AppsV1Api()
+
+# ============================================================
+# METRICS EXPORT
+# ============================================================
+PREDICTED_LOAD = Gauge('predicted_traffic_demand', 'AI predicted traffic')
+CURRENT_LOAD = Gauge('current_traffic_rate', 'Current traffic rate')
+EXPECTED_PODS = Gauge('predicted_replicas_count', 'Predicted pod count')
+CURRENT_PODS = Gauge('current_replicas_count', 'Current pod count')
+
+# ============================================================
+# HELPERS
+# ============================================================
 def get_current_load():
     try:
         result = pc.custom_query(query=QUERY_REAL_LOAD)
-        # Nếu có dữ liệu thì lấy giá trị, không thì trả về 0
-        if result and len(result) > 0:
+        if result:
             return float(result[0]['value'][1])
     except Exception as e:
-        print(f"[ERROR] Không thể lấy dữ liệu từ Prometheus: {e}")
+        print(f"[ERROR] Prometheus query: {e}")
     return 0.0
 
-def run_controller():
-    print("--- Proactive AI Controller đang chạy nội bộ (Cổng 9000) ---", flush=True)
+
+def get_current_pods():
+    try:
+        scale = apps_v1.read_namespaced_deployment_scale(
+            DEPLOYMENT_NAME, NAMESPACE
+        )
+        return scale.status.replicas
+    except Exception as e:
+        print(f"[ERROR] K8s API: {e}")
+        return 0
+
+
+def ema(prev, curr, alpha=EMA_ALPHA):
+    return alpha * curr + (1 - alpha) * prev
+
+
+# ============================================================
+# MAIN LOOP
+# ============================================================
+def run():
+    print("=== Proactive Controller v2 Started ===", flush=True)
+
     history = []
-    
+
     while True:
         try:
-            curr = get_current_load()
-            CURRENT_LOAD_GAUGE.set(curr)
-            history.append(curr)
-            
-            # Cần ít nhất 5 điểm dữ liệu (50 giây) để bắt đầu dự báo xu hướng
-            if len(history) > 5:
-                # Chỉ lấy 10 điểm gần nhất để đảm bảo tính thời sự
-                if len(history) > 10:
-                    history = history[-10:]
-                
-                # Xây dựng mô hình hồi quy tuyến tính đơn giản
+            curr_rps = get_current_load()
+            curr_pods = get_current_pods()
+
+            CURRENT_LOAD.set(curr_rps)
+            CURRENT_PODS.set(curr_pods)
+
+            # ===== SMOOTHING =====
+            if history:
+                smoothed = ema(history[-1], curr_rps)
+            else:
+                smoothed = curr_rps
+
+            history.append(smoothed)
+
+            if len(history) > MAX_HISTORY:
+                history.pop(0)
+
+            # ===== CHƯA ĐỦ DATA =====
+            if len(history) < MIN_HISTORY:
+                prediction = smoothed
+                print(f"[*] Collecting data... ({len(history)}/{MIN_HISTORY})")
+
+            else:
+                # ===== REGRESSION =====
                 X = np.array(range(len(history))).reshape(-1, 1)
                 y = np.array(history)
-                model = LinearRegression().fit(X, y)
-                
-                # Dự báo tải cho 30s tới (3 chu kỳ tiếp theo)
-                # Công thức: y = ax + b -> Dự báo tại điểm (hiện tại + 3)
-                prediction = model.predict([[len(history) + 3]])[0]
-                prediction = max(0, float(prediction)) # Không để tải âm
-                
-                PREDICTED_LOAD.set(prediction)
-            print(f"[AI] Thực tế: {curr:.2f} rps -> Dự báo (30s): {prediction:.2f} rps", flush=True)
-        else:
-            print(f"[*] Đang tích lũy dữ liệu... ({len(history)}/5)", flush=True)
-            PREDICTED_LOAD.set(curr) # Tạm thời lấy tải thực tế làm dự báo
-            
-    except Exception as e:
-        print(f"[ERROR] Lỗi logic AI: {e}", flush=True)
-            
-        time.sleep(10) # Chu kỳ phân tích 10s theo kịch bản 3
 
-if __name__ == '__main__':
-    # Chạy HTTP Server tại cổng 9000 để Prometheus Scrape dữ liệu
-    # Port 9000 phải khớp với containerPort trong file Deployment
-    start_http_server(9000, addr='0.0.0.0')
-    run_controller()
+                model = LinearRegression().fit(X, y)
+
+                # multi-step prediction (3 bước tương lai)
+                future_X = np.array(
+                    range(len(history), len(history) + 3)
+                ).reshape(-1, 1)
+
+                preds = model.predict(future_X)
+                prediction = float(np.mean(preds))
+
+                # ===== ANTI-SPIKE =====
+                last = history[-1]
+                prediction = min(prediction, last * MAX_GROWTH_RATE)
+
+                # ===== NON-NEGATIVE =====
+                prediction = max(0, prediction)
+
+            # ===== CALCULATE PODS =====
+            predicted_pods = math.ceil(prediction / SCALING_THRESHOLD)
+            predicted_pods = max(MIN_PODS, min(predicted_pods, MAX_PODS))
+
+            # ===== ANTI-THRASHING =====
+            if abs(predicted_pods - curr_pods) < 1:
+                predicted_pods = curr_pods
+
+            # ===== EXPORT METRICS =====
+            PREDICTED_LOAD.set(prediction)
+            EXPECTED_PODS.set(predicted_pods)
+
+            print(
+                f"[AI] RPS={curr_rps:.2f} | Smooth={smoothed:.2f} | "
+                f"Pred={prediction:.2f} | Pods={curr_pods}->{predicted_pods}",
+                flush=True
+            )
+
+        except Exception as e:
+            print(f"[ERROR] Main loop: {e}", flush=True)
+
+        time.sleep(SCRAPE_INTERVAL)
+
+
+# ============================================================
+# ENTRYPOINT
+# ============================================================
+if __name__ == "__main__":
+    start_http_server(9000)
+    run()

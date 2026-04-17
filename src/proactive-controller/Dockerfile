@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir \
     prometheus-client \
     scikit-learn \
     numpy \
+    kubernetes \
     requests
 
 COPY predictive_controller.py .
