@@ -8,23 +8,65 @@ metadata:
   namespace: nt531-env
 data:
   mock_agent.py: |
-    from prometheus_client import start_http_server, Gauge
     import time
-    import random
+    import json
+    import urllib.request
+    import urllib.parse
+    from prometheus_client import start_http_server, Gauge
 
     PREDICTED_LOAD = Gauge(
         "predicted_traffic_demand",
-        "Mock predicted load for KEDA Prometheus scaler (KB3 demo)",
+        "AI predicted load for KEDA Prometheus scaler (Linear Extrapolation)",
     )
+
+    PROM_URL = "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/query"
+    # Lấy tổng tốc độ nhận request của các pod ứng dụng trong 30s qua
+    QUERY = "sum(rate(http_requests_total{endpoint='/collect'}[30s]))"
+
+    def get_current_rate():
+        try:
+            url = f"{PROM_URL}?query={urllib.parse.quote(QUERY)}"
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read().decode())
+                if data.get('status') == 'success' and data['data']['result']:
+                    return float(data['data']['result'][0]['value'][1])
+        except Exception as e:
+            print(f"Query error / System not generating load: {e}")
+        return 0.0
 
     if __name__ == "__main__":
         start_http_server(8001, addr="0.0.0.0")
-        print("listening :8001 /metrics", flush=True)
+        print("Proactive AI Agent listening on :8001 /metrics", flush=True)
+        
+        history_rates = []
+        
         while True:
-            # Dao động quanh ngưỡng KEDA (threshold=6 trong proactive-scaler.yaml)
-            val = random.choice([2, 4, 8, 14, 22, 38, 45])
-            PREDICTED_LOAD.set(val)
-            print(f"predicted_traffic_demand={val}", flush=True)
+            current_rate = get_current_rate()
+            history_rates.append(current_rate)
+            
+            # Lưu lịch sử 4 điểm (mỗi điểm cách nhau 15s) -> 1 phút
+            if len(history_rates) > 4:
+                history_rates.pop(0)
+            
+            prediction = current_rate
+            if len(history_rates) >= 2:
+                # Tính độ dốc (Slope): (Giá trị mới nhất - Cũ nhất) / Số khoảng thời gian
+                # Tốc độ thay đổi per 15s interval
+                trend_per_interval = (history_rates[-1] - history_rates[0]) / (len(history_rates) - 1)
+                
+                # Dự báo tải cho 60 giây tương lai (4 interval)
+                prediction = current_rate + (trend_per_interval * 4)
+            
+            # KEDA cần scale an toàn, tránh âm và luôn giữ buffer tối thiểu (+2)
+            final_predict = max(current_rate, prediction) + 2
+            
+            # Làm tròn số để nhìn logs cho rõ
+            final_predict = int(final_predict)
+            
+            PREDICTED_LOAD.set(final_predict)
+            print(f"Current Rate: {current_rate:.2f} req/s | Trend: {prediction - current_rate:.2f} | KEDA Predict: {final_predict} req/s", flush=True)
+            
             time.sleep(15)
 ---
 apiVersion: apps/v1
