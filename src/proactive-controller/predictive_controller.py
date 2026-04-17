@@ -30,7 +30,7 @@ def get_current_load():
     return 0.0
 
 def run_controller():
-    print("--- Proactive AI Controller đang chạy nội bộ (Cổng 9000) ---")
+    print("--- Proactive AI Controller đang chạy nội bộ (Cổng 9000) ---", flush=True)
     history = []
     
     while True:
@@ -56,13 +56,13 @@ def run_controller():
                 prediction = max(0, float(prediction)) # Không để tải âm
                 
                 PREDICTED_LOAD.set(prediction)
-                print(f"[AI] Thực tế: {curr:.2f} rps -> Dự báo (30s): {prediction:.2f} rps")
-            else:
-                print(f"[*] Đang tích lũy dữ liệu... ({len(history)}/5)")
-                PREDICTED_LOAD.set(curr) # Tạm thời lấy tải thực tế làm dự báo
-                
-        except Exception as e:
-            print(f"[ERROR] Lỗi logic AI: {e}")
+            print(f"[AI] Thực tế: {curr:.2f} rps -> Dự báo (30s): {prediction:.2f} rps", flush=True)
+        else:
+            print(f"[*] Đang tích lũy dữ liệu... ({len(history)}/5)", flush=True)
+            PREDICTED_LOAD.set(curr) # Tạm thời lấy tải thực tế làm dự báo
+            
+    except Exception as e:
+        print(f"[ERROR] Lỗi logic AI: {e}", flush=True)
             
         time.sleep(10) # Chu kỳ phân tích 10s theo kịch bản 3
 

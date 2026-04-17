@@ -17,6 +17,9 @@ spec:
       - name: predictive-controller
         image: predictive-controller:latest # Đảm bảo Quyên đã build image này vào K3s/Docker
         imagePullPolicy: IfNotPresent
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
         ports:
         - containerPort: 9000
 ---
