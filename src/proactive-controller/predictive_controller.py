@@ -1,39 +1,24 @@
-# ============================================================
-# PROACTIVE CONTROLLER (RULE-BASED EXTRAPOLATION VERSION)
-# ============================================================
-
-import time
-import math
+import time, math
 import numpy as np
 from prometheus_api_client import PrometheusConnect
-from prometheus_client import start_http_server, Gauge
+from prometheus_client import start_http_server
 from sklearn.linear_model import LinearRegression
 from kubernetes import client, config
+from threading import Thread
 
-# ============================================================
-# CONFIG
-# ============================================================
+import metrics
+from grpc_server import start_grpc
+
+# --- CONFIG ---
 PROMETHEUS_URL = "http://100.99.156.17:9090"
 QUERY_REAL_LOAD = 'sum(rate(http_requests_total[2m]))'
 
-NAMESPACE = "nt531-env"
-DEPLOYMENT_NAME = "target-app"
+NAMESPACE, DEPLOYMENT_NAME = "nt531-env", "target-app"
 
-SCALING_THRESHOLD = 6.0
-MIN_PODS = 2
-MAX_PODS = 6
+SCALING_THRESHOLD, MIN_PODS, MAX_PODS = 4.0, 2, 8
+EMA_ALPHA, MAX_GROWTH_RATE = 0.3, 1.5
+MIN_HISTORY, MAX_HISTORY = 6, 12
 
-SCRAPE_INTERVAL = 10
-
-# ===== RULE PARAMETERS =====
-EMA_ALPHA = 0.3
-MAX_GROWTH_RATE = 1.5   # anti-spike (150%)
-MIN_HISTORY = 6
-MAX_HISTORY = 12
-
-# ============================================================
-# INIT
-# ============================================================
 pc = PrometheusConnect(url=PROMETHEUS_URL, disable_ssl=True)
 
 try:
@@ -43,128 +28,114 @@ except:
 
 apps_v1 = client.AppsV1Api()
 
-# ============================================================
-# METRICS EXPORT
-# ============================================================
-CURRENT_RPS = Gauge('current_rps', 'Raw traffic rate')
-SMOOTHED_RPS = Gauge('smoothed_rps', 'EMA filtered load')
-FUTURE_LOAD = Gauge('future_load', 'Extrapolated future load')
-TARGET_PODS = Gauge('target_pods', 'Desired pods from controller')
-CURRENT_PODS = Gauge('current_pods', 'Current pod count')
 
-# ============================================================
-# HELPERS
-# ============================================================
-def get_current_rps():
-    try:
-        result = pc.custom_query(query=QUERY_REAL_LOAD)
-        if result:
-            value = float(result[0]['value'][1])
-            return max(0, value)  # RULE: không âm
-    except Exception as e:
-        print(f"[ERROR] Prometheus: {e}")
-    return 0.0  # RULE: fallback an toàn
-
-
-def get_current_pods():
-    try:
-        scale = apps_v1.read_namespaced_deployment_scale(
-            DEPLOYMENT_NAME, NAMESPACE
-        )
-        return scale.status.replicas
-    except Exception as e:
-        print(f"[ERROR] K8s: {e}")
-        return 0
-
-
+# =========================
+# HELPER
+# =========================
 def ema(prev, curr):
     return EMA_ALPHA * curr + (1 - EMA_ALPHA) * prev
 
 
-# ============================================================
+# =========================
 # MAIN LOOP
-# ============================================================
+# =========================
 def run():
-    print("=== Rule-Based Extrapolation Controller Started ===")
+    print("=== Proactive Controller Loop Started ===", flush=True)
 
     history = []
 
     while True:
         try:
-            # =================================================
+            # ======================================
             # 1. CURRENT RPS (RAW)
-            # =================================================
-            curr_rps = get_current_rps()
-            curr_pods = get_current_pods()
+            # ======================================
+            res = pc.custom_query(query=QUERY_REAL_LOAD)
+            curr_rps = float(res[0]['value'][1]) if res else 0.0
 
-            CURRENT_RPS.set(curr_rps)
-            CURRENT_PODS.set(curr_pods)
+            scale = apps_v1.read_namespaced_deployment_scale(
+                DEPLOYMENT_NAME, NAMESPACE
+            )
+            curr_pods = scale.status.replicas
 
-            # =================================================
-            # 2. EMA SMOOTHING
-            # =================================================
+            # export raw
+            metrics.CURRENT_RPS.set(curr_rps)
+
+            # ======================================
+            # 2. SMOOTHING (EMA)
+            # ======================================
             if history:
                 smoothed = ema(history[-1], curr_rps)
             else:
                 smoothed = curr_rps
 
-            SMOOTHED_RPS.set(smoothed)
-
             history.append(smoothed)
             if len(history) > MAX_HISTORY:
                 history.pop(0)
 
-            # =================================================
-            # 3. EXTRAPOLATION (TREND EXTENSION)
-            # =================================================
-            if len(history) < MIN_HISTORY:
-                future = smoothed
-                print(f"[*] Collecting data... ({len(history)}/{MIN_HISTORY})")
+            # ⭐ EXPORT SMOOTHED (BẠN ĐANG THIẾU CHỖ NÀY)
+            metrics.SMOOTHED_RPS.set(smoothed)
 
-            else:
+            # ======================================
+            # 3. EXTRAPOLATION (TREND)
+            # ======================================
+            if len(history) >= MIN_HISTORY:
                 X = np.arange(len(history)).reshape(-1, 1)
-                y = np.array(history)
+                model = LinearRegression().fit(X, np.array(history))
 
-                model = LinearRegression().fit(X, y)
+                future_points = np.arange(
+                    len(history), len(history) + 3
+                ).reshape(-1, 1)
 
-                future_X = np.arange(len(history), len(history) + 3).reshape(-1, 1)
-                preds = model.predict(future_X)
-
+                preds = model.predict(future_points)
                 future = float(np.mean(preds))
 
-                # ===== RULE: ANTI-SPIKE =====
-                last = history[-1]
-                future = min(future, last * MAX_GROWTH_RATE)
+                # Anti-spike
+                future = min(future, smoothed * MAX_GROWTH_RATE)
 
-                # ===== RULE: NON-NEGATIVE =====
+                # Non-negative
                 future = max(0, future)
+            else:
+                future = smoothed
 
-            FUTURE_LOAD.set(future)
+            metrics.FUTURE_LOAD.set(future)
 
-            # =================================================
-            # 4. TARGET PODS (CORE RULE)
-            # =================================================
+            # ======================================
+            # 4. TARGET PODS
+            # ======================================
             target = math.ceil(future / SCALING_THRESHOLD)
-
             target = max(MIN_PODS, min(target, MAX_PODS))
 
-            # ===== RULE: ANTI-THRASHING =====
+            # Anti-thrashing
             if abs(target - curr_pods) < 1:
                 target = curr_pods
 
-            TARGET_PODS.set(target)
+            metrics.TARGET_PODS.set(target)
 
+            # ======================================
+            # 5. SHARED STATE (gRPC)
+            # ======================================
+            metrics.LATEST_PREDICTION = future
+            metrics.LATEST_TARGET_PODS = target
+
+            # ======================================
+            # LOG
+            # ======================================
             print(
-                f"[RULE] RPS={curr_rps:.2f} | Smooth={smoothed:.2f} | "
-                f"Future={future:.2f} | Pods={curr_pods}->{target}"
+                f"[CONTROLLER] RPS={curr_rps:.2f} | Smooth={smoothed:.2f} | "
+                f"Future={future:.2f} | Pods={curr_pods}->{target}",
+                flush=True
             )
 
         except Exception as e:
-            print(f"[ERROR] Main loop: {e}")
+            print(f"[ERROR] {e}", flush=True)
 
-        time.sleep(SCRAPE_INTERVAL)
+        time.sleep(10)
 
 
+# =========================
+# ENTRYPOINT
+# =========================
 if __name__ == "__main__":
     start_http_server(9000)
+    Thread(target=start_grpc, daemon=True).start()
     run()

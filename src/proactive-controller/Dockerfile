@@ -1,17 +1,18 @@
 FROM python:3.8-slim
-
 WORKDIR /app
 
-# Cài đặt các thư viện cần thiết
-# Lưu ý: Ép phiên bản 0.5.1 cho prometheus-api-client
+# Cài đặt thư viện
 RUN pip install --no-cache-dir \
     prometheus-api-client==0.5.1 \
     prometheus-client \
     scikit-learn \
     numpy \
     kubernetes \
-    requests
+    requests \
+    grpcio \
+    grpcio-tools
 
-COPY predictive_controller.py .
+# SỬA DÒNG NÀY: Copy tất cả file (bao gồm cả grpc_server.py nếu có)
+COPY . . 
 
 CMD ["python", "predictive_controller.py"]
