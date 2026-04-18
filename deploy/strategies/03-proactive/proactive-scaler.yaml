@@ -17,7 +17,7 @@ spec:
     metadata:
       serverAddress: http://100.99.156.17:9090
       metricName: predicted_traffic_demand
-      threshold: '4' 
+      threshold: '2' 
       query: sum(predicted_traffic_demand)
   advanced:
     restoreToOriginalReplicaCount: true
