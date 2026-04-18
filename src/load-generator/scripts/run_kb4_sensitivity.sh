@@ -11,6 +11,7 @@ REPEATS=${2:-2}
 # Chỉ chạy Ramp cho phân tích độ nhạy
 PROFILES=("ramp")
 
+export LOCUST_CONFIG="$CONFIG"
 # Tự động lưu vào thư mục riêng
 export LOCUST_OUT_DIR="../../data/kb4_sensitivity/threshold_${THRESHOLD}"
 mkdir -p "$LOCUST_OUT_DIR"
