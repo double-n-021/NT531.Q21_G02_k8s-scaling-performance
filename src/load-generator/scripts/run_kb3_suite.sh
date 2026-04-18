@@ -6,10 +6,10 @@
 
 STRATEGY="proactive-keda"
 CONFIG="config/proactive_scenario.yaml"
-HOST=${1:-"http://100.97.201.48:8888"}
+HOST=${1:-"http://100.99.156.17:8888"}
 REPEATS=${2:-3}
 
-PROFILES=("stable" "ramp" "spike_recovery")
+PROFILES=("ramp" "spike_recovery")
 
 mkdir -p results
 
