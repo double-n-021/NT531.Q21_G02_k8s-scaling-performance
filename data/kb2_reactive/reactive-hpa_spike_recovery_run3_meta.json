@@ -1,0 +1,13 @@
+{
+  "profile": "spike_recovery",
+  "config_file": "config/hpa_scenario.yaml",
+  "seed": 45,
+  "start_epoch": 1776554146.0518804,
+  "start_iso": "2026-04-19T06:15:46+0700",
+  "host": "http://100.99.156.17:8888",
+  "calibration": {
+    "lambda_normal": 2,
+    "lambda_cap": 10,
+    "lambda_max": 40
+  }
+}
