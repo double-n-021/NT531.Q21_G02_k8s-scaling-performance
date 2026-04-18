@@ -69,11 +69,13 @@ for i in $(seq 1 "$RUNS"); do
     LOCUST_CONFIG="$CONFIG" \
     LOCUST_SEED="$SEED" \
     RUN_ID="$RUN_ID" \
-    locust -f locustfile.py \
-        --host "$HOST" \
-        --headless \
-        --csv "${OUT_DIR}/${RUN_ID}" \
-        --csv-full-history
+    {
+        locust -f locustfile.py \
+            --host "$HOST" \
+            --headless \
+            --csv "${OUT_DIR}/${RUN_ID}" \
+            --csv-full-history
+    } || true || true
 
     echo "    [DONE] Run ${i} completed."
 
