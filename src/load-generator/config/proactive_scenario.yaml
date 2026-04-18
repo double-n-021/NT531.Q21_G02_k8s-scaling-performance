@@ -9,11 +9,12 @@
 target:
   host: "http://100.99.156.17:8888"     # IP máy ảo của Kiên Võ
   endpoint: "/collect"
+  maxReplicaCount: 5
 
 calibration:
   lambda_normal: 2        # 2 users (2 req/s) -> HPA giữ 2 Pod (IDLE)
   lambda_cap: 10          # 10 users -> Ngưỡng bão hòa của 2 Pod
-  lambda_max: 40          # 40 users -> Vượt xa năng lực 2 Pod, ép scale lên 6 Pod
+  lambda_max: 30          # 30 users -> Phù hợp năng lực thực tế của máy ảo
 
 profiles:
   stable:
@@ -25,7 +26,7 @@ profiles:
     duration: 480
     stages:
       - {duration: 60,  users: 2,   spawn_rate: 2}      # Baseline
-      - {duration: 360, users: 40,  spawn_rate: 0.2}    # Tăng dần lên 40 users
+      - {duration: 360, users: 30,  spawn_rate: 0.1}    # Tăng dần lên 30 users
       - {duration: 60,  users: 2,   spawn_rate: 10}     # Drop nhanh
 
 #  spike:
@@ -40,8 +41,8 @@ profiles:
     duration: 420
     stages:
       - {duration: 60,  users: 2,   spawn_rate: 2}      # Baseline
-      - {duration: 1,   users: 40,  spawn_rate: 40}     # Spike
-      - {duration: 60,  users: 40,  spawn_rate: 2}      # Giữ đỉnh
+      - {duration: 1,   users: 30,  spawn_rate: 30}     # Spike
+      - {duration: 60,  users: 30,  spawn_rate: 2}      # Giữ đỉnh
       - {duration: 1,   users: 2,   spawn_rate: 40}     # Drop sạch
       - {duration: 298, users: 2,   spawn_rate: 2}      # Quan sát KEDA SCALE-DOWN (Cool-down)
 
