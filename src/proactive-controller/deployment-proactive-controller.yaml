@@ -65,7 +65,7 @@ spec:
       serviceAccountName: predictive-sa   # ⭐ QUAN TRỌNG
       containers:
       - name: predictive-controller
-        image: predictive-controller:v7
+        image: predictive-controller:v5
         imagePullPolicy: IfNotPresent
         env:
         - name: PYTHONUNBUFFERED

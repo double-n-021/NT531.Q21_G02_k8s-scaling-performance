@@ -10,7 +10,7 @@ import metrics
 from grpc_server import start_grpc
 
 # --- CONFIG ---
-PROMETHEUS_URL = "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+PROMETHEUS_URL = "http://100.99.156.17:9090"
 QUERY_REAL_LOAD = 'sum(rate(http_requests_total[2m]))'
 
 NAMESPACE, DEPLOYMENT_NAME = "nt531-env", "target-app"
