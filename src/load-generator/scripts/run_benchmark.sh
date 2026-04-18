@@ -65,17 +65,17 @@ for i in $(seq 1 "$RUNS"); do
     # Chạy Locust (Tất cả profiles đều dùng LoadShape trong locustfile.py)
     echo "    [RUN] Starting Locust..."
 
-    PROFILE="$PROFILE" \
-    LOCUST_CONFIG="$CONFIG" \
-    LOCUST_SEED="$SEED" \
-    RUN_ID="$RUN_ID" \
-    {
+    (
+        export PROFILE="$PROFILE"
+        export LOCUST_CONFIG="$CONFIG"
+        export LOCUST_SEED="$SEED"
+        export RUN_ID="$RUN_ID"
         locust -f locustfile.py \
             --host "$HOST" \
             --headless \
             --csv "${OUT_DIR}/${RUN_ID}" \
             --csv-full-history
-    } || true || true
+    ) || true
 
     echo "    [DONE] Run ${i} completed."
 
