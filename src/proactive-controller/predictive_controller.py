@@ -1,3 +1,7 @@
+# ============================================================
+# PROACTIVE CONTROLLER (RULE-BASED EXTRAPOLATION VERSION)
+# ============================================================
+
 import time
 import math
 import numpy as np
@@ -21,13 +25,9 @@ MAX_PODS = 6
 
 SCRAPE_INTERVAL = 10
 
-# Smoothing
+# ===== RULE PARAMETERS =====
 EMA_ALPHA = 0.3
-
-# Anti-spike
-MAX_GROWTH_RATE = 1.5  # max +50% mỗi step
-
-# History
+MAX_GROWTH_RATE = 1.5   # anti-spike (150%)
 MIN_HISTORY = 6
 MAX_HISTORY = 12
 
@@ -46,22 +46,24 @@ apps_v1 = client.AppsV1Api()
 # ============================================================
 # METRICS EXPORT
 # ============================================================
-PREDICTED_LOAD = Gauge('predicted_traffic_demand', 'AI predicted traffic')
-CURRENT_LOAD = Gauge('current_traffic_rate', 'Current traffic rate')
-EXPECTED_PODS = Gauge('predicted_replicas_count', 'Predicted pod count')
-CURRENT_PODS = Gauge('current_replicas_count', 'Current pod count')
+CURRENT_RPS = Gauge('current_rps', 'Raw traffic rate')
+SMOOTHED_RPS = Gauge('smoothed_rps', 'EMA filtered load')
+FUTURE_LOAD = Gauge('future_load', 'Extrapolated future load')
+TARGET_PODS = Gauge('target_pods', 'Desired pods from controller')
+CURRENT_PODS = Gauge('current_pods', 'Current pod count')
 
 # ============================================================
 # HELPERS
 # ============================================================
-def get_current_load():
+def get_current_rps():
     try:
         result = pc.custom_query(query=QUERY_REAL_LOAD)
         if result:
-            return float(result[0]['value'][1])
+            value = float(result[0]['value'][1])
+            return max(0, value)  # RULE: không âm
     except Exception as e:
-        print(f"[ERROR] Prometheus query: {e}")
-    return 0.0
+        print(f"[ERROR] Prometheus: {e}")
+    return 0.0  # RULE: fallback an toàn
 
 
 def get_current_pods():
@@ -71,95 +73,98 @@ def get_current_pods():
         )
         return scale.status.replicas
     except Exception as e:
-        print(f"[ERROR] K8s API: {e}")
+        print(f"[ERROR] K8s: {e}")
         return 0
 
 
-def ema(prev, curr, alpha=EMA_ALPHA):
-    return alpha * curr + (1 - alpha) * prev
+def ema(prev, curr):
+    return EMA_ALPHA * curr + (1 - EMA_ALPHA) * prev
 
 
 # ============================================================
 # MAIN LOOP
 # ============================================================
 def run():
-    print("=== Proactive Controller v2 Started ===", flush=True)
+    print("=== Rule-Based Extrapolation Controller Started ===")
 
     history = []
 
     while True:
         try:
-            curr_rps = get_current_load()
+            # =================================================
+            # 1. CURRENT RPS (RAW)
+            # =================================================
+            curr_rps = get_current_rps()
             curr_pods = get_current_pods()
 
-            CURRENT_LOAD.set(curr_rps)
+            CURRENT_RPS.set(curr_rps)
             CURRENT_PODS.set(curr_pods)
 
-            # ===== SMOOTHING =====
+            # =================================================
+            # 2. EMA SMOOTHING
+            # =================================================
             if history:
                 smoothed = ema(history[-1], curr_rps)
             else:
                 smoothed = curr_rps
 
-            history.append(smoothed)
+            SMOOTHED_RPS.set(smoothed)
 
+            history.append(smoothed)
             if len(history) > MAX_HISTORY:
                 history.pop(0)
 
-            # ===== CHƯA ĐỦ DATA =====
+            # =================================================
+            # 3. EXTRAPOLATION (TREND EXTENSION)
+            # =================================================
             if len(history) < MIN_HISTORY:
-                prediction = smoothed
+                future = smoothed
                 print(f"[*] Collecting data... ({len(history)}/{MIN_HISTORY})")
 
             else:
-                # ===== REGRESSION =====
-                X = np.array(range(len(history))).reshape(-1, 1)
+                X = np.arange(len(history)).reshape(-1, 1)
                 y = np.array(history)
 
                 model = LinearRegression().fit(X, y)
 
-                # multi-step prediction (3 bước tương lai)
-                future_X = np.array(
-                    range(len(history), len(history) + 3)
-                ).reshape(-1, 1)
-
+                future_X = np.arange(len(history), len(history) + 3).reshape(-1, 1)
                 preds = model.predict(future_X)
-                prediction = float(np.mean(preds))
 
-                # ===== ANTI-SPIKE =====
+                future = float(np.mean(preds))
+
+                # ===== RULE: ANTI-SPIKE =====
                 last = history[-1]
-                prediction = min(prediction, last * MAX_GROWTH_RATE)
+                future = min(future, last * MAX_GROWTH_RATE)
 
-                # ===== NON-NEGATIVE =====
-                prediction = max(0, prediction)
+                # ===== RULE: NON-NEGATIVE =====
+                future = max(0, future)
 
-            # ===== CALCULATE PODS =====
-            predicted_pods = math.ceil(prediction / SCALING_THRESHOLD)
-            predicted_pods = max(MIN_PODS, min(predicted_pods, MAX_PODS))
+            FUTURE_LOAD.set(future)
 
-            # ===== ANTI-THRASHING =====
-            if abs(predicted_pods - curr_pods) < 1:
-                predicted_pods = curr_pods
+            # =================================================
+            # 4. TARGET PODS (CORE RULE)
+            # =================================================
+            target = math.ceil(future / SCALING_THRESHOLD)
 
-            # ===== EXPORT METRICS =====
-            PREDICTED_LOAD.set(prediction)
-            EXPECTED_PODS.set(predicted_pods)
+            target = max(MIN_PODS, min(target, MAX_PODS))
+
+            # ===== RULE: ANTI-THRASHING =====
+            if abs(target - curr_pods) < 1:
+                target = curr_pods
+
+            TARGET_PODS.set(target)
 
             print(
-                f"[AI] RPS={curr_rps:.2f} | Smooth={smoothed:.2f} | "
-                f"Pred={prediction:.2f} | Pods={curr_pods}->{predicted_pods}",
-                flush=True
+                f"[RULE] RPS={curr_rps:.2f} | Smooth={smoothed:.2f} | "
+                f"Future={future:.2f} | Pods={curr_pods}->{target}"
             )
 
         except Exception as e:
-            print(f"[ERROR] Main loop: {e}", flush=True)
+            print(f"[ERROR] Main loop: {e}")
 
         time.sleep(SCRAPE_INTERVAL)
 
 
-# ============================================================
-# ENTRYPOINT
-# ============================================================
 if __name__ == "__main__":
     start_http_server(9000)
     run()

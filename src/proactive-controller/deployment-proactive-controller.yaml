@@ -1,3 +1,48 @@
+# ============================================================
+# 1. ServiceAccount
+# ============================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: predictive-sa
+  namespace: monitoring
+
+---
+# ============================================================
+# 2. Role (quyền đọc scale deployment)
+# ============================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: predictive-role
+  namespace: nt531-env
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments/scale"]
+  verbs: ["get", "list", "watch"]
+
+---
+# ============================================================
+# 3. RoleBinding
+# ============================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: predictive-binding
+  namespace: nt531-env
+subjects:
+- kind: ServiceAccount
+  name: predictive-sa
+  namespace: monitoring
+roleRef:
+  kind: Role
+  name: predictive-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ============================================================
+# 4. Deployment (GIỮ NGUYÊN FILE CỦA BẠN + thêm SA + annotation)
+# ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,29 +57,38 @@ spec:
     metadata:
       labels:
         app: predictive-controller
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+        prometheus.io/path: "/metrics"
     spec:
+      serviceAccountName: predictive-sa   # ⭐ QUAN TRỌNG
       containers:
       - name: predictive-controller
-        image: predictive-controller:latest # Đảm bảo Quyên đã build image này vào K3s/Docker
+        image: predictive-controller:v2
         imagePullPolicy: IfNotPresent
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
         ports:
         - containerPort: 9000
+
 ---
+# ============================================================
+# 5. Service (giữ nguyên)
+# ============================================================
 apiVersion: v1
 kind: Service
 metadata:
   name: predictive-controller-service
   namespace: monitoring
   labels:
-    app: predictive-controller # Nhãn quan trọng để Monitor tìm thấy
+    app: predictive-controller
 spec:
   selector:
     app: predictive-controller
   ports:
-  - name: metrics # Đặt tên port để ServiceMonitor nhận diện
+  - name: metrics
     port: 9000
     targetPort: 9000
   type: ClusterIP
