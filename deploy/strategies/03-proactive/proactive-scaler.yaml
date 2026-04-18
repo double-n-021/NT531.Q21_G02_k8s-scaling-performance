@@ -15,9 +15,9 @@ spec:
   triggers:
   - type: prometheus
     metadata:
-      serverAddress: http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+      serverAddress: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
       metricName: predicted_traffic_demand
-      threshold: '4' 
+      threshold: '6' 
       query: sum(predicted_traffic_demand)
   advanced:
     restoreToOriginalReplicaCount: true
