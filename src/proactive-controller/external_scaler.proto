@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package externalscaler;
+
+service ExternalScaler {
+  rpc GetMetricSpec(ScaledObjectRef) returns (GetMetricSpecResponse);
+  rpc GetMetrics(GetMetricsRequest) returns (GetMetricsResponse);
+  rpc IsActive(ScaledObjectRef) returns (IsActiveResponse);
+}
+
+message ScaledObjectRef {
+  string name = 1;
+  string namespace = 2;
+}
+
+message GetMetricSpecResponse {
+  repeated MetricSpec metricSpecs = 1;
+}
+
+message MetricSpec {
+  string metricName = 1;
+  int64 targetSize = 2;
+}
+
+message GetMetricsRequest {
+  string metricName = 1;
+}
+
+message GetMetricsResponse {
+  repeated MetricValue metricValues = 1;
+}
+
+message MetricValue {
+  string metricName = 1;
+  int64 metricValue = 2;
+}
+
+message IsActiveResponse {
+  bool result = 1;
+}

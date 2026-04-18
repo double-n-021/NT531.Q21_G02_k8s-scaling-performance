@@ -15,7 +15,7 @@ spec:
   triggers:
   - type: prometheus
     metadata:
-      serverAddress: http://100.99.156.17:9090
+      serverAddress: http://100.97.201.48:9090
       metricName: predicted_traffic_demand
       threshold: '4' 
       query: sum(predicted_traffic_demand)

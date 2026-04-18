@@ -4,7 +4,7 @@ metadata:
   name: predictive-controller-monitor
   namespace: monitoring
   labels:
-    release: monitoring # Khớp với label của Prometheus Operator bạn đang dùng
+    release: prometheus # Khớp với label của Prometheus Operator bạn đang dùng
 spec:
   selector:
     matchLabels:
