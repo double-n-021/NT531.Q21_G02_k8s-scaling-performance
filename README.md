@@ -1,17 +1,16 @@
-<p align="center">
+<div align="center">
   <img src="https://kubernetes.io/images/nav_logo.svg" height="80" alt="Kubernetes"/>
-  <h1 align="center">Đánh giá Hiệu năng Mạng của các Chiến lược Scaling trong Hệ thống Xử lý Dữ liệu Sinh hiệu IoMT</h1>
-</p>
+  <h1>🏥 Đánh giá hiệu năng mạng của các cơ chế cấp phát tài nguyên trong hệ thống xử lý dữ liệu sinh hiệu thời gian thực</h1>
+  <p><b>Học phần: NT531 - Đánh giá hiệu năng hệ thống mạng máy tính</b></p>
+  <p><i>Trường Đại học Công nghệ Thông tin, ĐHQG-HCM</i></p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white" />
-  <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white" />
-</p>
+  [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+  [![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
+  [![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=Prometheus&logoColor=white)](https://prometheus.io/)
+  [![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat-square&logo=grafana&logoColor=white)](https://grafana.com/)
+</div>
 
-> **Học phần:** NT531 - Đánh giá hiệu năng hệ thống mạng máy tính  
-> **Trường:** Đại học Công nghệ Thông tin, ĐHQG-HCM
+---
 
 Repository này cung cấp toàn bộ testbed (mã nguồn, cấu hình tự động hóa) và dữ liệu thực nghiệm phục vụ việc đánh giá hiệu năng tầng mạng (Network Performance) của các hệ thống Microservice y tế thời gian thực (Internet of Medical Things - IoMT) khi phải đối mặt với các kịch bản lưu lượng biến động mạnh.
 
