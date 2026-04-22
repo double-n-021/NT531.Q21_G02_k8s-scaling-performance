@@ -1,11 +1,12 @@
 <div align="center">
-  <h1>🏥 Đánh giá hiệu năng mạng của các cơ chế cấp phát tài nguyên trong hệ thống xử lý dữ liệu sinh hiệu thời gian thực</h1>
+  <h1>🏥 Đánh Giá Hiệu Năng Mạng Của Các Cơ Chế Cấp Phát Tài Nguyên<br>Trong Hệ Thống Xử Lý Dữ Liệu Sinh Hiệu Thời Gian Thực</h1>
   <p><b>Học phần: NT531 - Đánh giá hiệu năng hệ thống mạng máy tính</b></p>
   <p><i>Trường Đại học Công nghệ Thông tin, ĐHQG-HCM</i></p>
   <p><i>Giảng viên hướng dẫn: ThS. Đặng Lê Bảo Chương</i></p>
 
   [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
   [![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
+  [![Locust](https://img.shields.io/badge/Locust-Load_Testing-4CAF50?style=flat-square&logo=locust&logoColor=white)](https://locust.io/)
   [![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=Prometheus&logoColor=white)](https://prometheus.io/)
   [![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat-square&logo=grafana&logoColor=white)](https://grafana.com/)
 </div>
@@ -119,4 +120,4 @@ python src/load-generator/analysis/plot_final_comparison.py
 |---|:---:|---|
 | Bùi Đặng Nhật Nguyên | `23521037` | [@double-n-021](https://github.com/double-n-021) |
 | Nguyễn Minh Quyền | `23521325` | [@Minh-Quyen-uit](https://github.com/Minh-Quyen-uit) |
-| Võ Trung Kiên | `23520809` | |
+| Võ Trung Kiên | `23520809` | [@VoTrungKien-23520809](https://github.com/VoTrungKien-23520809) |
