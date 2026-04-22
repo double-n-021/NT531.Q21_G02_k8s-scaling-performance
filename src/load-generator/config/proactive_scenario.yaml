@@ -9,7 +9,7 @@
 target:
   host: "http://100.99.156.17:8888"     # IP máy ảo của Kiên Võ
   endpoint: "/collect"
-  maxReplicaCount: 5
+  maxReplicaCount: 6
 
 calibration:
   lambda_normal: 2        # 2 users (2 req/s) -> HPA giữ 2 Pod (IDLE)

@@ -8,7 +8,7 @@ class ExternalScalerServicer(external_scaler_pb2_grpc.ExternalScalerServicer):
     def GetMetricSpec(self, request, context):
         return external_scaler_pb2.GetMetricSpecResponse(
             metricSpecs=[
-                external_scaler_pb2.MetricSpec(metricName="future_load", targetSize=2)
+                external_scaler_pb2.MetricSpec(metricName="future_load", targetSize=6)
             ]
         )
 
