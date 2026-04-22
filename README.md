@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="https://kubernetes.io/images/nav_logo.svg" height="80" alt="Kubernetes"/>
   <h1>🏥 Đánh giá hiệu năng mạng của các cơ chế cấp phát tài nguyên trong hệ thống xử lý dữ liệu sinh hiệu thời gian thực</h1>
   <p><b>Học phần: NT531 - Đánh giá hiệu năng hệ thống mạng máy tính</b></p>
   <p><i>Trường Đại học Công nghệ Thông tin, ĐHQG-HCM</i></p>
+  <p><i>Giảng viên hướng dẫn: ThS. Đặng Lê Bảo Chương</i></p>
 
   [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
   [![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
@@ -28,6 +28,14 @@ Hệ thống theo dõi sức khỏe thời gian thực yêu cầu độ trễ (E
 Đặc biệt, đồ án được đối chiếu với **mô hình lý thuyết hàng đợi M/G/k (Xấp xỉ Kimura)** và áp dụng các kiểm định thống kê (Kruskal-Wallis, Cohen's d) để chứng minh mức độ hiệu quả của từng thuật toán.
 
 **🔥 Kết quả nổi bật:** Proactive Scaling (KEDA + Controller) giúp giảm **33% độ trễ P95** và **50% tỷ lệ lỗi** so với HPA trong kịch bản tải đột biến (Spike).
+
+---
+
+## 🏛️ Kiến Trúc Hệ Thống (System Architecture)
+
+<div align="center">
+  <img src="architecture/SystemArchitecture.png" alt="System Architecture">
+</div>
 
 ---
 
@@ -105,8 +113,10 @@ python src/load-generator/analysis/plot_final_comparison.py
 
 ---
 
-## 👥 Nhóm Thực hiện (Nhóm 02)
+## 👨‍💻 Nhóm Thực hiện (Nhóm 02)
 
-- Bùi Đăng Nhật Nguyên (23521037)
-- Nguyễn Minh Quyền (23521325)
-- Võ Trung Kiên (23520809)
+| Họ và Tên | MSSV | Profile GitHub |
+|---|:---:|---|
+| Bùi Đặng Nhật Nguyên | `23521037` | [@double-n-021](https://github.com/double-n-021) |
+| Nguyễn Minh Quyền | `23521325` | [@Minh-Quyen-uit](https://github.com/Minh-Quyen-uit) |
+| Võ Trung Kiên | `23520809` | |
