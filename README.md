@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🏥 Đánh Giá Hiệu Năng Mạng Của Các Cơ Chế Cấp Phát Tài Nguyên<br>Trong Hệ Thống Xử Lý Dữ Liệu Sinh Hiệu Thời Gian Thực</h1>
+  <h1>🏥 ĐÁNH GIÁ HIỆU NĂNG MẠNG CỦA CÁC CƠ CHẾ CẤP PHÁT TÀI NGUYÊN TRONG HỆ THỐNG XỬ LÝ DỮ LIỆU SINH HIỆU THỜI GIAN THỰC</h1>
   <p><b>Học phần: NT531 - Đánh giá hiệu năng hệ thống mạng máy tính</b></p>
   <p><i>Trường Đại học Công nghệ Thông tin, ĐHQG-HCM</i></p>
   <p><i>Giảng viên hướng dẫn: ThS. Đặng Lê Bảo Chương</i></p>
